@@ -83,13 +83,15 @@ public class LauncherActivity extends AppCompatActivity {
             }
         });
 
-        // Pad the drawer's bottom by the system bar height so the bottom icon row + line aren't
-        // hidden behind the navigation bar / gesture area.
+        // Pad the drawer's top and bottom by the system bar height so the header isn't behind the
+        // status bar and the bottom icon row isn't hidden behind the navigation bar / gesture area.
         binding.drawerContainer.setOnApplyWindowInsetsListener((v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsets.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), insets.bottom);
+            v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), insets.bottom);
             return windowInsets;
         });
+
+        binding.navHeaderVersion.setText(getString(R.string.nav_header_subtitle) + " • v" + BuildConfig.VERSION_NAME);
 
         setSupportActionBar(binding.appbar);
 
@@ -109,7 +111,7 @@ public class LauncherActivity extends AppCompatActivity {
                 return true;
             } else if (item.getItemId() == R.id.action_open_controls_editor) {
                 //Intent intent = new Intent(this, ControlsEditorActivity.class);
-                //startActivity(intent);
+                //startActivity(intent);\
                 binding.drawerLayout.close();
                 navController.navigate(R.id.action_open_controls_editor_launch);
                 return true;
@@ -143,9 +145,9 @@ public class LauncherActivity extends AppCompatActivity {
                 binding.drawerLayout.close();
                 sendBugReport();
                 return true;
-        }
+            }
 
-        binding.drawerLayout.close();
+            binding.drawerLayout.close();
 
             return NavigationUI.onNavDestinationSelected(item, navController)
                     || super.onOptionsItemSelected(item);

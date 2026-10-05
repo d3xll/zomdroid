@@ -4,7 +4,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
-
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LauncherActivity">
@@ -13,6 +12,7 @@
         android:id="@+id/appbar_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?attr/colorSurface"
         app:liftOnScroll="false"
         android:elevation="0dp"
         app:elevation="0dp">
@@ -21,7 +21,9 @@
             android:id="@+id/appbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/toolbar_gradient"
+            android:background="?attr/colorSurface"
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIconTint="?attr/colorOnSurface"
             app:theme="@style/AppTheme.Toolbar"/>
 
         <fragment
@@ -33,174 +35,223 @@
             app:navGraph="@navigation/nav_graph" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/drawer_container"
         android:layout_width="320dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:orientation="vertical"
-        android:background="?attr/colorSurface">
+        app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+        app:cardElevation="1dp"
+        app:strokeWidth="0dp"
+        app:useCompatPadding="false"
+        app:cardPreventCornerOverlap="false"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Drawer">
 
-        <com.google.android.material.navigation.NavigationView
-            android:id="@+id/launcher_nv"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            app:dividerColor="?attr/colorOutlineVariant"
-            app:menu="@menu/menu_nav"/>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutlineVariant"/>
-
-        <!-- Bottom row: Wiki / Donate / Reddit / GitHub / RimDroid.
-             Labelled now. Unlabelled glyphs meant nobody knew what any of them did without tapping,
-             which mattered most for Donate: the label used to read "Support", which in an app is as easily
-             read as "technical support". Five equal-weight columns rather than
-             fixed margins, so the labels decide the spacing and nothing clips on a narrow drawer. -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
+            <!-- Drawer Header -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/nav_header_container"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="vertical"
-                android:gravity="center_horizontal">
+                android:paddingStart="20dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="16dp">
 
-                <ImageButton
-                    android:id="@+id/nav_bottom_wiki"
-                    style="@style/AppTheme.ImageButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/mt_icon_menu_book"
-                    android:tint="?attr/colorOnSurfaceVariant"
-                    android:contentDescription="@string/fragment_label_wiki"/>
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@mipmap/ic_launcher"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.App.SmallComponent" />
 
                 <TextView
-                    style="@style/AppTheme.NavBottomLabel"
-                    android:text="@string/fragment_label_wiki"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
-
-                <ImageButton
-                    android:id="@+id/nav_bottom_donate"
-                    style="@style/AppTheme.ImageButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/mt_icon_donate"
-                    android:tint="?attr/colorOnSurfaceVariant"
-                    android:contentDescription="@string/nav_menu_donate"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/app_name"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textStyle="bold" />
 
                 <TextView
-                    style="@style/AppTheme.NavBottomLabel"
-                    android:text="@string/nav_menu_donate"/>
+                    android:id="@+id/nav_header_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/nav_header_subtitle"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                app:dividerColor="?attr/colorOutlineVariant"
+                app:dividerInsetStart="16dp"
+                app:dividerInsetEnd="16dp" />
+
+            <com.google.android.material.navigation.NavigationView
+                android:id="@+id/launcher_nv"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
+                android:background="@android:color/transparent"
+                app:dividerColor="?attr/colorOutlineVariant"
+                app:menu="@menu/menu_nav"/>
 
-                <ImageButton
-                    android:id="@+id/nav_bottom_reddit"
-                    style="@style/AppTheme.ImageButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_reddit"
-                    android:tint="?attr/colorOnSurfaceVariant"
-                    android:contentDescription="@string/nav_menu_reddit"/>
-
-                <TextView
-                    style="@style/AppTheme.NavBottomLabel"
-                    android:text="@string/nav_menu_reddit"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
+                app:dividerColor="?attr/colorOutlineVariant" />
 
-                <FrameLayout
-                    android:layout_width="44dp"
-                    android:layout_height="44dp">
+            <!-- Bottom row: Wiki / Donate / Reddit / GitHub / RimDroid. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="?attr/colorSurfaceContainer"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
 
                     <ImageButton
-                        android:id="@+id/nav_bottom_version"
+                        android:id="@+id/nav_bottom_wiki"
                         style="@style/AppTheme.ImageButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
                         android:scaleType="centerInside"
-                        android:src="@drawable/ic_github"
+                        android:src="@drawable/mt_icon_menu_book"
                         android:tint="?attr/colorOnSurfaceVariant"
-                        android:contentDescription="@string/nav_menu_version"/>
+                        android:contentDescription="@string/fragment_label_wiki"/>
 
-                    <!-- "update available" dot; shown by refreshUpdateBadge() when GitHub has a newer release -->
-                    <View
-                        android:id="@+id/update_badge"
-                        android:layout_width="9dp"
-                        android:layout_height="9dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:background="@drawable/update_badge_dot"
-                        android:visibility="gone"/>
-                </FrameLayout>
+                    <TextView
+                        style="@style/AppTheme.NavBottomLabel"
+                        android:text="@string/fragment_label_wiki"/>
+                </LinearLayout>
 
-                <TextView
-                    style="@style/AppTheme.NavBottomLabel"
-                    android:text="@string/nav_bottom_github"/>
-            </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
 
-            <!-- Another launcher by the same author. Deliberately NOT tinted: the whole point is
-                 that it is recognisable, and a flat fill would reduce the logo to a silhouette. -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
+                    <ImageButton
+                        android:id="@+id/nav_bottom_donate"
+                        style="@style/AppTheme.ImageButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/mt_icon_donate"
+                        android:tint="?attr/colorOnSurfaceVariant"
+                        android:contentDescription="@string/nav_menu_donate"/>
 
-                <ImageButton
-                    android:id="@+id/nav_bottom_rimdroid"
-                    style="@style/AppTheme.ImageButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:padding="8dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_rimdroid"
-                    android:contentDescription="@string/nav_bottom_rimdroid"/>
+                    <TextView
+                        style="@style/AppTheme.NavBottomLabel"
+                        android:text="@string/nav_menu_donate"/>
+                </LinearLayout>
 
-                <TextView
-                    style="@style/AppTheme.NavBottomLabel"
-                    android:text="@string/nav_bottom_rimdroid"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <ImageButton
+                        android:id="@+id/nav_bottom_reddit"
+                        style="@style/AppTheme.ImageButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_reddit"
+                        android:tint="?attr/colorOnSurfaceVariant"
+                        android:contentDescription="@string/nav_menu_reddit"/>
+
+                    <TextView
+                        style="@style/AppTheme.NavBottomLabel"
+                        android:text="@string/nav_menu_reddit"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <FrameLayout
+                        android:layout_width="44dp"
+                        android:layout_height="44dp">
+
+                        <ImageButton
+                            android:id="@+id/nav_bottom_version"
+                            style="@style/AppTheme.ImageButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_github"
+                            android:tint="?attr/colorOnSurfaceVariant"
+                            android:contentDescription="@string/nav_menu_version"/>
+
+                        <!-- "update available" dot; shown by refreshUpdateBadge() when GitHub has a newer release -->
+                        <View
+                            android:id="@+id/update_badge"
+                            android:layout_width="9dp"
+                            android:layout_height="9dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/update_badge_dot"
+                            android:visibility="gone"/>
+                    </FrameLayout>
+
+                    <TextView
+                        style="@style/AppTheme.NavBottomLabel"
+                        android:text="@string/nav_bottom_github"/>
+                </LinearLayout>
+
+                <!-- Another launcher by the same author. Deliberately NOT tinted: the whole point is
+                     that it is recognisable, and a flat fill would reduce the logo to a silhouette. -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_horizontal">
+
+                    <ImageButton
+                        android:id="@+id/nav_bottom_rimdroid"
+                        style="@style/AppTheme.ImageButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:padding="8dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_rimdroid"
+                        android:contentDescription="@string/nav_bottom_rimdroid"/>
+
+                    <TextView
+                        style="@style/AppTheme.NavBottomLabel"
+                        android:text="@string/nav_bottom_rimdroid"/>
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutlineVariant"/>
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.drawerlayout.widget.DrawerLayout>

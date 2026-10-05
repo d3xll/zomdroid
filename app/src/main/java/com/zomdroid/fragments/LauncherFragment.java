@@ -166,6 +166,10 @@ public class LauncherFragment extends Fragment {
                 ImageButton moreIb = itemView.findViewById(R.id.game_instance_item_more_ib);
 
                 nameTv.setText(gameInstance.getName());
+                TextView badgeTv = itemView.findViewById(R.id.game_instance_item_badge_tv);
+                if (badgeTv != null) {
+                    badgeTv.setText(gameInstance.getPresetName());
+                }
                 // The hosting switch lives in the instance settings; the card repeats it so the
                 // player sees why the game will open on the hosting profile before launching.
                 itemView.findViewById(R.id.game_instance_item_hosting_tv).setVisibility(

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme.Toolbar" parent="">
+    <style name="AppTheme.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="titleTextColor">?attr/colorOnSurface</item>
+        <item name="subtitleTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="navigationIconTint">?attr/colorOnSurface</item>
         <item name="iconTint">?attr/colorOnSurface</item>
         <item name="colorControlNormal">?attr/colorOnSurface</item>
     </style>
     <style name="AppTheme.ImageButton">
         <item name="android:layout_width">48dp</item>
         <item name="android:layout_height">48dp</item>
-        <item name="android:background">@null</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
         <item name="android:tint">?attr/colorOnSurface</item>
     </style>
     <style name="AppTheme.Button" parent="Widget.Material3.Button">
@@ -17,11 +20,11 @@
     </style>
     <!-- Caption under each icon in the drawer's bottom row. Single line and ellipsized: five
          columns share the drawer width, and a wrapped label would shove the row's height around. -->
-    <style name="AppTheme.NavBottomLabel" parent="">
+    <style name="AppTheme.NavBottomLabel" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:gravity">center_horizontal</item>
-        <item name="android:textSize">9sp</item>
+        <item name="android:textSize">10sp</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
         <item name="android:singleLine">true</item>
         <item name="android:ellipsize">end</item>
@@ -30,13 +33,13 @@
         <item name="dividerColor">?attr/colorOutlineVariant</item>
         <!-- Half the Material 3 side spacing (inset 12dp to 6dp, padding 28dp to 14dp): the longest
              drawer labels, like "Import/Export Custom Driver", were cut off at the old spacing. -->
-        <item name="itemShapeInsetStart">6dp</item>
-        <item name="itemShapeInsetEnd">6dp</item>
+        <item name="itemShapeInsetStart">8dp</item>
+        <item name="itemShapeInsetEnd">8dp</item>
         <item name="itemHorizontalPadding">14dp</item>
-        <item name="dividerInsetStart">14dp</item>
-        <item name="dividerInsetEnd">14dp</item>
-        <item name="subheaderInsetStart">14dp</item>
-        <item name="subheaderInsetEnd">14dp</item>
+        <item name="dividerInsetStart">16dp</item>
+        <item name="dividerInsetEnd">16dp</item>
+        <item name="subheaderInsetStart">16dp</item>
+        <item name="subheaderInsetEnd">16dp</item>
         <!-- One step below the Material 3 drawer label (Label Large, 14sp): with the spacing
              above, the longest labels still did not fit. -->
         <item name="itemTextAppearance">@style/AppTheme.NavigationView.ItemText</item>
@@ -44,5 +47,39 @@
 
     <style name="AppTheme.NavigationView.ItemText" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">13sp</item>
+    </style>
+
+    <!-- Secondary action button on game instance card (settings, overflow) -->
+    <style name="AppTheme.CardActionButton">
+        <item name="android:layout_width">40dp</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:background">@drawable/bg_card_btn_secondary</item>
+        <item name="tint">#FFFFFF</item>
+        <item name="android:tint">#FFFFFF</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+
+    <!-- Prominent primary play button on game instance card -->
+    <style name="AppTheme.CardActionButton.Play">
+        <item name="android:layout_width">46dp</item>
+        <item name="android:layout_height">46dp</item>
+        <item name="android:background">@drawable/bg_card_btn_play</item>
+        <item name="tint">?attr/colorOnPrimary</item>
+        <item name="android:tint">?attr/colorOnPrimary</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:scaleType">centerInside</item>
+    </style>
+
+    <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.Drawer" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">24dp</item>
+        <item name="cornerSizeBottomRight">24dp</item>
+        <item name="cornerSizeTopLeft">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
     </style>
 </resources>
