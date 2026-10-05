@@ -11,6 +11,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.android.material.color.DynamicColors;
+import com.google.android.material.color.DynamicColorsOptions;
 import com.zomdroid.game.GameInstanceManager;
 
 import java.security.Security;
@@ -25,6 +27,20 @@ public class ZomdroidApplication extends Application {
     public void onCreate() {
         super.onCreate();
         installFullBouncyCastle();
+
+        if (!getProcessName().endsWith(":server")) {
+            LauncherPreferences.init(this);
+            AppCompatDelegate.setDefaultNightMode(
+                    LauncherPreferences.requireSingleton().getThemeMode().nightMode);
+            DynamicColors.applyToActivitiesIfAvailable(
+                    this,
+                    new DynamicColorsOptions.Builder()
+                            .setPrecondition((activity, theme) ->
+                                    LauncherPreferences.requireSingleton().isDynamicColors())
+                            .build()
+            );
+        }
+
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {
@@ -105,9 +121,6 @@ public class ZomdroidApplication extends Application {
     private void init() {
         inited = true;
         GameInstanceManager.init(this);
-        LauncherPreferences.init(this);
-        AppCompatDelegate.setDefaultNightMode(
-                LauncherPreferences.requireSingleton().getThemeMode().nightMode);
         CrashHandler.init();
         updateLauncherVersion();
     }

@@ -27,7 +27,7 @@
         <item name="android:ellipsize">end</item>
     </style>
     <style name="AppTheme.NavigationView" parent="Widget.Material3.NavigationView">
-        <item name="dividerColor">@color/pz_orange</item>
+        <item name="dividerColor">?attr/colorOutlineVariant</item>
         <!-- Half the Material 3 side spacing (inset 12dp to 6dp, padding 28dp to 14dp): the longest
              drawer labels, like "Import/Export Custom Driver", were cut off at the old spacing. -->
         <item name="itemShapeInsetStart">6dp</item>

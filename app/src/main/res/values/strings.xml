@@ -260,7 +260,7 @@
     <string name="install_controls_zip_warning">ZIP must contain controls.json (at top level). If not, it may be installed incorrectly.</string>
 
     <string name="install_controls_zip_help_title">Controls ZIP format</string>
-    <string name="install_controls_zip_help_message">✅ Correct:\n\ncontrols.json\n\n❌ Incorrect:\n\nSomeFolder/\n\u00A0\u00A0controls.json</string>
+    <string name="install_controls_zip_help_message">\u2705 Correct:\n\ncontrols.json\n\n\u274c Incorrect:\n\nSomeFolder/\n\u00A0\u00A0controls.json</string>
 
     <string name="install_saves_instance_label">Select game instance</string>
     <string name="install_saves_zip_label">Saves ZIP archive</string>
@@ -377,7 +377,7 @@
     <!-- Labels for the bottom icon row. Short on purpose: five columns share the drawer width. -->
     <string name="nav_bottom_github">GitHub</string>
     <!-- CC BY requires the credit to stay visible, so it rides along in the version dialog - the
-         one "about this app" surface reachable at any time. Untranslated on purpose: a licence
+         one \"about this app\" surface reachable at any time. Untranslated on purpose: a licence
          attribution names people and a licence, and both stay as written. -->
     <string name="credits_third_party" translatable="false">Donate icon: \"Donate\" by Edward Boatman from the Noun Project, CC BY 3.0.\nhttps://thenounproject.com/icon/donate-285/</string>
     <string name="nav_bottom_rimdroid" translatable="false">RimDroid</string>
@@ -391,8 +391,8 @@
     <string name="settings_env_vars_hint">For example: TU_DEBUG=nogmem</string>
     <string name="settings_texture_shrink_title">Texture shrink — GL4ES / NG_GL4ES</string>
     <string name="settings_texture_shrink_desc">Values 1–11 are not a scale. Commonly used: 1 (ultra low) and 7 (balanced); mode 1 can crash on empty textures. See the table for the rest.</string>
-    <string name="settings_texture_shrink_table">1. ⚠  all halved\n2. ⚠  above 512px halved\n3. ⚠  above 256px halved\n4. ⚠  above 256px halved, 1024px+ quartered\n5.    above 256px → 256px\n6.    above 128px halved, 512px+ → 256px\n7.    above 512px halved</string>
-    <string name="settings_texture_shrink_notes">⚠  also shrinks empty textures — this is where the crashes come from.\n\n8–11 are compatibility modes: they report a larger maximum texture size to the game and save no memory. Not needed for PZ.\n\nHalving a side quarters the memory a texture costs.</string>
+    <string name="settings_texture_shrink_table">1. ⚠️  all halved\n2. ⚠️  above 512px halved\n3. ⚠️  above 256px halved\n4. ⚠️  above 256px halved, 1024px+ quartered\n5.    above 256px → 256px\n6.    above 128px halved, 512px+ → 256px\n7.    above 512px halved</string>
+    <string name="settings_texture_shrink_notes">⚠️  also shrinks empty textures — this is where the crashes come from.\n\n8–11 are compatibility modes: they report a larger maximum texture size to the game and save no memory. Not needed for PZ.\n\nHalving a side quarters the memory a texture costs.</string>
     <string name="settings_texture_shrink_none">Off</string>
     <string name="settings_texture_shrink_balanced">Balanced (7)</string>
     <string name="settings_texture_shrink_ultra">Ultra low (1)</string>
@@ -440,6 +440,9 @@
     <string name="settings_group_texture">Texture compression</string>
     <string name="settings_group_appearance">Appearance</string>
     <string name="settings_theme">Launcher theme</string>
+    <string name="settings_dynamic_colors">Dynamic colors (Material You)</string>
+    <string name="settings_dynamic_colors_summary">Match colors with device wallpaper (Android 12+)</string>
+    <string name="settings_dynamic_colors_unsupported">Dynamic colors are not supported on this device</string>
     <string name="settings_group_advanced">Advanced</string>
     <string name="settings_group_controls">Controls</string>
     <string name="settings_group_audio">Audio</string>
@@ -537,7 +540,7 @@
     <string name="optimization_betterfps_file_label">BetterFPS mod (zipped)</string>
     <string name="optimization_install">Install</string>
     <string name="optimization_betterfps_help_title">How BetterFPS works</string>
-    <string name="optimization_betterfps_help_message">Steam Workshop ID: 3022543997\n\n"Project Zomboid renders a 190×190 tile zone around the player. This mod reduces the size of this zone and avoids loading unnecessary chunks."\n— mod description\n\nVariants:\n• PotatoePC — maximum performance\n• 1080 — balanced\n• 4k — best quality (still lower than the original)\n• All_Settings — custom area sizes from 30×30 to 190×190; must be installed manually\n\nWe recommend starting with PotatoePC. You can go lower manually if needed.</string>
+    <string name="optimization_betterfps_help_message">Steam Workshop ID: 3022543997\n\n\"Project Zomboid renders a 190×190 tile zone around the player. This mod reduces the size of this zone and avoids loading unnecessary chunks.\"\n— mod description\n\nVariants:\n• PotatoePC — maximum performance\n• 1080 — balanced\n• 4k — best quality (still lower than the original)\n• All_Settings — custom area sizes from 30×30 to 190×190; must be installed manually\n\nWe recommend starting with PotatoePC. You can go lower manually if needed.</string>
     <string name="optimization_betterfps_installed">BetterFPS installed successfully</string>
     <string name="optimization_betterfps_installing">Installing BetterFPS…</string>
     <string name="optimization_betterfps_mode_label">→ Mode</string>
@@ -555,7 +558,7 @@
     <string name="optimization_rlz_installed">Render Less Zombie installed (level %1$s)</string>
     <string name="optimization_rlz_error_not_found">Level %1$s not found in this archive. Make sure you picked the RenderLessZombie mod ZIP.</string>
     <string name="optimization_rlz_help_title">How Render Less Zombie works</string>
-    <string name="optimization_rlz_help_message">Steam Workshop ID: 2970823607\n\n"When there are too many zombies, they will be rendered as texture animations."\n— mod description\n\nThe level is how many zombies are still drawn as full 3D models; everything beyond that becomes a cheap flat animation. Available levels: 1, 25, 50, 75, 100, 150 — the mod author recommends 50. The vanilla game has a hard limit of 510.\n\nInstalling replaces the zombie/iso classes of the selected instance; the originals are kept next to them as .bak files, so you can restore them by hand if you ever want the stock behaviour.\n\nBuild 41 only.</string>
+    <string name="optimization_rlz_help_message">Steam Workshop ID: 2970823607\n\n\"When there are too many zombies, they will be rendered as texture animations.\"\n— mod description\n\nThe level is how many zombies are still drawn as full 3D models; everything beyond that becomes a cheap flat animation. Available levels: 1, 25, 50, 75, 100, 150 — the mod author recommends 50. The vanilla game has a hard limit of 510.\n\nInstalling replaces the zombie/iso classes of the selected instance; the originals are kept next to them as .bak files, so you can restore them by hand if you ever want the stock behaviour.\n\nBuild 41 only.</string>
 
     <!-- ===== Mods fix ===== -->
     <string name="mod_fix_installing">Installing mod with fix…</string>
@@ -577,7 +580,7 @@
 
     <!-- Manual mods installation -->
     <string name="install_mod_manual_group">Manual installation</string>
-    <string name="install_mod_manual_hint">Copy mod folder to the mods folder inside the Zomboid folder. Create the mods folder if it doesn\'t exist (lowercase "mods"). Mod folder must not contain any extra wrapper folders.</string>
+    <string name="install_mod_manual_hint">Copy mod folder to the mods folder inside the Zomboid folder. Create the mods folder if it doesn\'t exist (lowercase \"mods\"). Mod folder must not contain any extra wrapper folders.</string>
     <string name="install_mod_open_folder">Open mods folder</string>
     <string name="install_mod_manual_help_title">Manual installation</string>
     <string name="install_mod_manual_help_message">

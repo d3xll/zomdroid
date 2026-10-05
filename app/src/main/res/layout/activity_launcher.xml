@@ -47,13 +47,13 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            app:dividerColor="@color/pz_orange"
+            app:dividerColor="?attr/colorOutlineVariant"
             app:menu="@menu/menu_nav"/>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/pz_orange"/>
+            android:background="?attr/colorOutlineVariant"/>
 
         <!-- Bottom row: Wiki / Donate / Reddit / GitHub / RimDroid.
              Labelled now. Unlabelled glyphs meant nobody knew what any of them did without tapping,
@@ -200,7 +200,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/pz_orange"/>
+            android:background="?attr/colorOutlineVariant"/>
     </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -48,6 +48,29 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp"/>
 
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    app:dividerColor="?attr/colorOutlineVariant" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/app_settings_dynamic_colors_sw"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_dynamic_colors"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <TextView
+                    android:id="@+id/app_settings_dynamic_colors_summary_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOutline"
+                    android:text="@string/settings_dynamic_colors_summary" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

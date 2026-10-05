@@ -345,6 +345,17 @@ public class LauncherPreferences {
     public ThemeMode getThemeMode() { return themeMode != null ? themeMode : ThemeMode.SYSTEM; }
     public void setThemeMode(ThemeMode mode) { themeMode = mode; saveToPreferences(); }
 
+    private boolean dynamicColors = true;
+
+    public boolean isDynamicColors() {
+        return dynamicColors;
+    }
+
+    public void setDynamicColors(boolean enabled) {
+        dynamicColors = enabled;
+        saveToPreferences();
+    }
+
     private boolean touchControlsEnabled = false;
 
     public boolean isTouchControlsEnabled() {

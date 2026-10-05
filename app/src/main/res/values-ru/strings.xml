@@ -217,7 +217,6 @@
     <string name="install_controls_instance_label">Экземпляр игры</string>
     <string name="install_controls_zip_label">ZIP с управлением</string>
     <string name="install_controls_install">Импортировать</string>
-
     <string name="dialog_title_installing_controls">Импорт управления…</string>
     <string name="dialog_title_controls_installed">Управление импортировано</string>
     <string name="dialog_title_failed_to_install_controls">Не удалось импортировать управление</string>
@@ -225,7 +224,7 @@
     <string name="install_controls_zip_warning">ZIP должен содержать controls.json на верхнем уровне. Иначе может быть установлен некорректно.</string>
 
     <string name="install_controls_zip_help_title">Формат ZIP с управлением</string>
-    <string name="install_controls_zip_help_message">✅ Правильно:\n\ncontrols.json\n\n❌ Неправильно:\n\nSomeFolder/\n\u00A0\u00A0controls.json</string>
+    <string name="install_controls_zip_help_message">\u2705 Правильно:\n\ncontrols.json\n\n\u274c Неправильно:\n\nSomeFolder/\n\u00A0\u00A0controls.json</string>
 
     <string name="install_saves_instance_label">Выберите экземпляр игры</string>
     <string name="install_saves_zip_label">ZIP архив с сохранениями</string>
@@ -260,7 +259,7 @@
     <string name="controls_export_nothing_to_export">Нечего экспортировать: используется стандартная раскладка управления.</string>
     <string name="settings_debug_mode">Режим отладки (-debug)</string>
     <string name="settings_memory_saver">Экономия памяти (NG_GL4ES)</string>
-    <string name="settings_memory_saver_hint">Снижает детализацию текстур, когда памяти становится мало. Помогает избежать вылетов на устройствах с 8 ГБ ОЗУ и меньше; на устройствах с 12 ГБ не нужна. Действует для рендерера NG_GL4ES на Build 42.</string>
+    <string name="settings_memory_saver_hint">Снижает детализацию текстур, когда памяти становится мало. Помогает избежать вылетов на устройствах с 8 ГБ ОЗУ и меньше; на устройствах с 12 ГБ не нужна. Действует для рендера NG_GL4ES на Build 42.</string>
     <string name="select_instance">— Выберите экземпляр игры —</string>
 
     <!-- Vulkan Driver dialogs -->
@@ -300,7 +299,7 @@
     <string name="dialog_title_failed_to_export_driver">Не удалось экспортировать драйвер</string>
 
     <string name="export_log_menu">Экспорт лога игры</string>
-    <string name="export_log_export">Экспортировать console.txt</string>
+    <string name="export_log_export">Экспорт console.txt</string>
     <string name="export_log_not_found">Файл лога не найден. Возможно, игра ещё не запускалась или вылетела до создания папки Zomboid.</string>
     <string name="dialog_title_exporting_log">Экспорт лога…</string>
     <string name="dialog_title_log_exported">Лог экспортирован</string>
@@ -308,7 +307,7 @@
 
     <string name="nav_menu_reddit">Reddit</string>
     <string name="reddit_dialog_title">Zomdroid на Reddit</string>
-    <string name="reddit_message">Mы на Reddit:\nhttps://www.reddit.com/r/zomdroid</string>
+    <string name="reddit_message">Мы на Reddit:\nhttps://www.reddit.com/r/zomdroid</string>
 
     <string name="settings_env_vars">Переменные окружения</string>
     <string name="settings_env_vars_hint">Например: TU_DEBUG=nogmem</string>
@@ -442,7 +441,7 @@
 
     <!-- Render Less Zombie (B41) -->
     <string name="optimization_group_rlz">Render Less Zombie b41</string>
-    <string name="optimization_rlz_hint">Отрисовывает дальних зомби плоскими текстурными анимациями вместо полных моделей — сильно помогает, когда на экране орда.\n\nSteam Workshop ID: 2970823607. Скачайте мод, загрузите ZIP-файл здесь и выберите уровень — это количество зомби, которые всё ещё рисуются полными моделями. Меньше = быстрее.</string>
+    <string name="optimization_rlz_hint">Отрисовывает дальних зомби плоскими текстурными анимациями вместо полных моделей — сильно помогает, когда на экране орда.\n\nSteam Workshop ID: 2970823607. Скачайте мод, загрузите ZIP-файл здесь и выберите уровень — это количество зомби, которые всё ещё рисуются полными 3D-моделями. Меньше = быстрее.</string>
     <string name="optimization_rlz_level_label">→ Уровень</string>
     <string name="optimization_rlz_file_label">Мод RenderLessZombie (zip-архив)</string>
     <string name="optimization_rlz_installing">Установка Render Less Zombie…</string>
@@ -593,7 +592,7 @@
     <string name="steam_dl_manifest_hint_41">id манифеста Build 41 (обязательно)</string>
     <string name="steam_dl_build41_needs_manifest">Build 41: введите id манифеста.</string>
     <string name="steam_dl_cancel">Отменить скачивание</string>
-    <string name="steam_dl_cancel_confirm">Отменить скачивание? Уже скачанные файлы сохранятся для докачки позже.</string>
+    <string name="steam_dl_cancel_confirm">Отменить скачивание? Уже скачанные файлы сохраняются для докачки позже.</string>
     <string name="steam_dl_username">Логин Steam</string>
     <string name="steam_dl_password">Пароль Steam</string>
     <string name="steam_dl_version_note">Загружает Linux-сборку Project Zomboid в Downloads/zomdroid — без Termux и без ПК. Build 41 весит ~6–7 ГБ, Build 42 ~10–11 ГБ без архива, поэтому качается долго; если прервётся — просто запусти ту же версию снова, и закачка продолжится (докачка). Оставь поле манифеста пустым для последней сборки. Чтобы зафиксировать более старую версию, найди её на https://steamdb.info/depot/108603/manifests/ и скопируй строку «DepotDownloader» (не «Steam Console») — вставь сюда всю строку целиком, вместе с веткой; переключатель Build 41/42 выше в этом случае игнорируется.</string>
@@ -615,6 +614,9 @@
     <!-- Appearance / controls / detection -->
     <string name="settings_group_appearance">Оформление</string>
     <string name="settings_theme">Тема лаунчера</string>
+    <string name="settings_dynamic_colors">Динамические цвета (Material You)</string>
+    <string name="settings_dynamic_colors_summary">Использовать цвета из обоев устройства (Android 12+)</string>
+    <string name="settings_dynamic_colors_unsupported">Динамические цвета не поддерживаются на этом устройстве</string>
     <string name="control_element_style">Стиль</string>
     <string name="control_element_custom_icon">Своя иконка…</string>
     <string name="control_element_custom_icon_failed">Не удалось загрузить изображение</string>

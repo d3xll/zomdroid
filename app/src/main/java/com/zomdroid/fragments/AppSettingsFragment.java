@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.color.DynamicColors;
 import com.zomdroid.LauncherPreferences;
 import com.zomdroid.R;
 import com.zomdroid.databinding.FragmentAppSettingsBinding;
@@ -57,6 +58,22 @@ public class AppSettingsFragment extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
+
+        boolean dynamicColorAvailable = DynamicColors.isDynamicColorAvailable();
+        if (!dynamicColorAvailable) {
+            binding.appSettingsDynamicColorsSw.setEnabled(false);
+            binding.appSettingsDynamicColorsSw.setChecked(false);
+            binding.appSettingsDynamicColorsSummaryTv.setText(R.string.settings_dynamic_colors_unsupported);
+        } else {
+            binding.appSettingsDynamicColorsSw.setChecked(
+                    LauncherPreferences.requireSingleton().isDynamicColors());
+            binding.appSettingsDynamicColorsSw.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked != LauncherPreferences.requireSingleton().isDynamicColors()) {
+                    LauncherPreferences.requireSingleton().setDynamicColors(isChecked);
+                    requireActivity().recreate();
+                }
+            });
+        }
     }
 
     @Override
