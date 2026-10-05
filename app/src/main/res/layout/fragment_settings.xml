@@ -19,9 +19,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -89,9 +91,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -197,9 +201,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -261,9 +267,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -319,7 +327,7 @@
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
 
-                    <androidx.appcompat.widget.SwitchCompat
+                    <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/settings_texture_compression_switch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -465,9 +473,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -484,7 +494,7 @@
                     android:textColor="?attr/colorPrimary"
                     android:textSize="13sp"/>
 
-                <androidx.appcompat.widget.SwitchCompat
+                <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/settings_backup_switch"
                     android:textStyle="bold"
                     android:layout_width="match_parent"
@@ -500,9 +510,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -554,7 +566,7 @@
                         app:layout_constraintTop_toTopOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"/>
 
-                    <androidx.appcompat.widget.SwitchCompat
+                    <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/settings_coop_hosting_switch"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -576,9 +588,14 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/settings_macos_card"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp" app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp" app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:padding="12dp">
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -678,22 +695,22 @@
                         android:layout_marginTop="2dp"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:text="@string/macos_libs_modules_hint" />
-                    <androidx.appcompat.widget.SwitchCompat android:id="@+id/settings_macos_lighting_switch"
+                    <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/settings_macos_lighting_switch"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:text="@string/macos_module_lighting" />
-                    <androidx.appcompat.widget.SwitchCompat android:id="@+id/settings_macos_pathfind_switch"
+                    <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/settings_macos_pathfind_switch"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:text="@string/macos_module_pathfind" />
-                    <androidx.appcompat.widget.SwitchCompat android:id="@+id/settings_macos_popman_switch"
+                    <com.google.android.material.materialswitch.MaterialSwitch android:id="@+id/settings_macos_popman_switch"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:text="@string/macos_module_popman" />
                     <!-- Not a macOS library: the game's own Android ARM64 build, in this list
                          because the card is "additional libraries", not "macOS libraries". -->
-                    <androidx.appcompat.widget.SwitchCompat
+                    <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/settings_native_fmod_switch"
                         android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBodySmall"
@@ -712,9 +729,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -788,16 +807,24 @@
 
                     </LinearLayout>
 
-                    <EditText
-                        android:id="@+id/settings_jargs_et"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:hint=" -Xms2G -Xmx3G -Xmn1G"
-                        android:textSize="11sp"
-                        android:inputType="textMultiLine|textNoSuggestions"
-                        android:lines="2"
-                        android:maxLines="3"/>
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="6dp"
+                        app:hintEnabled="false">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/settings_jargs_et"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint=" -Xms2G -Xmx3G -Xmn1G"
+                            android:textSize="12sp"
+                            android:inputType="textMultiLine|textNoSuggestions"
+                            android:lines="2"
+                            android:maxLines="3"/>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -905,17 +932,25 @@
 
                     </LinearLayout>
 
-                    <EditText
-                        android:id="@+id/settings_env_vars_et"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:hint="@string/settings_env_vars_hint"
-                        android:textSize="11sp"
-                        android:inputType="textMultiLine|textNoSuggestions"
-                        android:lines="2"
-                        android:maxLines="5"
-                        android:gravity="top"/>
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="6dp"
+                        app:hintEnabled="false">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/settings_env_vars_et"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/settings_env_vars_hint"
+                            android:textSize="12sp"
+                            android:inputType="textMultiLine|textNoSuggestions"
+                            android:lines="2"
+                            android:maxLines="5"
+                            android:gravity="top"/>
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -942,7 +977,7 @@
                         android:layout_marginBottom="12dp"
                         android:background="?attr/colorOutlineVariant"/>
 
-                    <androidx.appcompat.widget.SwitchCompat
+                    <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/settings_debug_switch"
                     android:textStyle="bold"
                         android:layout_width="match_parent"
@@ -951,7 +986,7 @@
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:text="@string/settings_debug_mode"/>
 
-                    <androidx.appcompat.widget.SwitchCompat
+                    <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/settings_memory_saver_switch"
                     android:textStyle="bold"
                         android:layout_width="match_parent"
@@ -979,9 +1014,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            app:cardCornerRadius="12dp"
-            app:strokeWidth="0dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOutlineVariant"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -1006,7 +1043,7 @@
                     android:textSize="12sp"
                     android:textColor="?android:attr/textColorSecondary"/>
 
-                <androidx.appcompat.widget.SwitchCompat
+                <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/touch_controls_switch"
                     android:textStyle="bold"
                     android:layout_width="match_parent"
@@ -1014,7 +1051,7 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:text="@string/touch_controls_switch_label"/>
 
-                <androidx.appcompat.widget.SwitchCompat
+                <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/vibrate_on_touch_switch"
                     android:textStyle="bold"
                     android:layout_width="match_parent"

@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.zomdroid.LauncherPreferences;
-import androidx.appcompat.app.AlertDialog;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import com.zomdroid.R;
 import com.zomdroid.databinding.FragmentSettingsBinding;
@@ -107,7 +107,7 @@ public class SettingsFragment extends Fragment {
     }
 
     private void showHostingLibrariesDialog(View anchor) {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_coop_hosting)
                 .setMessage(R.string.coop_b41_libraries_required)
                 .setPositiveButton(R.string.macos_libs_download, (d, w) -> openLibraries(anchor, true, false))
@@ -198,7 +198,7 @@ public class SettingsFragment extends Fragment {
                         // before any shrinking, so 7 halves next to nothing - while a non-zero
                         // LIBGL_SHRINK keeps NG's memory saver budget off.
                         if (warningIsRelevantFor(true)) {
-                            new AlertDialog.Builder(requireContext())
+                            new MaterialAlertDialogBuilder(requireContext())
                                     .setTitle(R.string.renderer_ng_build42_only_title)
                                     .setMessage(R.string.renderer_ng_build42_only_message)
                                     .setPositiveButton(android.R.string.ok, null)
@@ -208,7 +208,7 @@ public class SettingsFragment extends Fragment {
                             && warningIsRelevantFor(false)) {
                         // The mirror image, and the cause of a real report: GL4ES picked by hand on
                         // 42.20 gives a black screen at startup.
-                        new AlertDialog.Builder(requireContext())
+                        new MaterialAlertDialogBuilder(requireContext())
                                 .setTitle(R.string.renderer_gl4es_build41_title)
                                 .setMessage(R.string.renderer_gl4es_build41_message)
                                 .setPositiveButton(android.R.string.ok, null)
@@ -293,43 +293,43 @@ public class SettingsFragment extends Fragment {
                 }
 
                 if (vulkanDriver == LauncherPreferences.VulkanDriver.FREEDRENO_8XX) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_freedreno_8xx_title))
                             .setMessage(getString(R.string.vulkan_driver_freedreno_8xx_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
                             .show();
                 } else if (vulkanDriver == LauncherPreferences.VulkanDriver.FREEDRENO_840) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_freedreno_840_title))
                             .setMessage(getString(R.string.vulkan_driver_freedreno_840_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
                             .show();
                 } else if (vulkanDriver == LauncherPreferences.VulkanDriver.TURNIP_740) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_turnip_8gen2_title))
                             .setMessage(getString(R.string.vulkan_driver_turnip_8gen2_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
                             .show();
                 } else if (vulkanDriver == LauncherPreferences.VulkanDriver.TURNIP_7XX) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_turnip_bbdd688_title))
                             .setMessage(getString(R.string.vulkan_driver_turnip_bbdd688_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
                             .show();
                 } else if (vulkanDriver == LauncherPreferences.VulkanDriver.TURNIP_710) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_turnip_gmem_title))
                             .setMessage(getString(R.string.vulkan_driver_turnip_gmem_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
                             .show();
                 } else if (vulkanDriver == LauncherPreferences.VulkanDriver.Turnip_6XX) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_turnip_a6xx_title))
                             .setMessage(getString(R.string.vulkan_driver_turnip_a6xx_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
                             .show();
                 } else if (vulkanDriver == LauncherPreferences.VulkanDriver.FREEDRENO) {
-                    new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    new MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.vulkan_driver_freedreno))
                             .setMessage(getString(R.string.vulkan_driver_freedreno_message))
                             .setPositiveButton(getString(R.string.dialog_button_ok), null)
@@ -449,7 +449,7 @@ public class SettingsFragment extends Fragment {
             // saves vanish from the game's menus. Players read that as lost saves: say it here,
             // and let Cancel undo the tap. Turning the switch off needs no warning.
             if (checked) {
-                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                new MaterialAlertDialogBuilder(requireContext())
                         .setTitle(R.string.coop_profile_warning_title)
                         .setMessage(R.string.coop_profile_warning)
                         .setPositiveButton(android.R.string.ok, (d, w) -> settings.setCoopHostingEnabled(true))
@@ -475,7 +475,7 @@ public class SettingsFragment extends Fragment {
                 return;
             }
             if (settings.isQuickSaveBackup()) return; // restore echo
-            new AlertDialog.Builder(requireContext())
+            new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.backup_warning_title)
                     .setMessage(R.string.backup_warning_message)
                     .setPositiveButton(R.string.dialog_button_confirm, (d, w) ->
@@ -505,7 +505,7 @@ public class SettingsFragment extends Fragment {
                 settings.setVibrateOnTouch(isChecked));
 
         binding.settingsJargsInfo.setOnClickListener(v -> {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(getString(R.string.jvm_args_dialog_title))
                     .setMessage(getString(R.string.jvm_args_dialog_message))
                     .setPositiveButton(getString(R.string.dialog_button_ok), null)
@@ -520,7 +520,7 @@ public class SettingsFragment extends Fragment {
                 showHelp(R.string.settings_coop_hosting, R.string.settings_coop_hosting_hint));
 
         binding.settingsEnvVarsInfo.setOnClickListener(v -> {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(getString(R.string.settings_env_vars))
                     .setMessage(getString(R.string.settings_env_vars_dialog_message))
                     .setPositiveButton(getString(R.string.dialog_button_ok), null)
@@ -533,7 +533,7 @@ public class SettingsFragment extends Fragment {
                     .setText(R.string.settings_texture_shrink_table);
             ((android.widget.TextView) content.findViewById(R.id.texture_shrink_notes))
                     .setText(R.string.settings_texture_shrink_notes);
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(getString(R.string.settings_texture_shrink_title))
                     .setView(content)
                     .setPositiveButton(getString(R.string.dialog_button_ok), null)
@@ -541,7 +541,7 @@ public class SettingsFragment extends Fragment {
         });
 
         binding.settingsRendererTvInfo.setOnClickListener(v -> {
-            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            new MaterialAlertDialogBuilder(requireContext())
                     .setTitle(getString(R.string.settings_renderer))
                     .setMessage(getString(R.string.settings_render_hint))
                     .setPositiveButton(getString(R.string.dialog_button_ok), null)
@@ -559,7 +559,7 @@ public class SettingsFragment extends Fragment {
     }
 
     private void showHelp(int titleRes, int messageRes) {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(titleRes))
                 .setMessage(android.text.Html.fromHtml(getString(messageRes), android.text.Html.FROM_HTML_MODE_LEGACY))
                 .setPositiveButton(getString(R.string.dialog_button_ok), null)
@@ -752,7 +752,7 @@ public class SettingsFragment extends Fragment {
         if (preset == SuggestedPreset.BUILD_42_COMPATIBILITY)
             message.append(getString(R.string.preset_confirm_compat_note));
 
-        new AlertDialog.Builder(requireContext())
+        new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.preset_confirm_title, name))
                 .setMessage(message.toString().trim())
                 .setNegativeButton(android.R.string.cancel, null)

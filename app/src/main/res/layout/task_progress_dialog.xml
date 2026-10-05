@@ -6,12 +6,13 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
-
     <TextView
         android:id="@+id/progress_dialog_title_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Title"/>
@@ -20,25 +21,27 @@
         android:id="@+id/progress_dialog_message_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/progress_dialog_title_tv"
         tools:text="Message"
         android:layout_marginTop="16dp"/>
 
-
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/progress_dialog_progress_lpi"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:trackCornerRadius="4dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/progress_dialog_message_tv"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
     <com.google.android.material.button.MaterialButton
-        style="@style/Widget.MaterialComponents.Button.TextButton"
+        style="@style/Widget.Material3.Button.TextButton"
         android:id="@+id/progress_dialog_ok_mb"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dialog_button_ok"
         app:layout_constraintTop_toBottomOf="@id/progress_dialog_progress_lpi"
