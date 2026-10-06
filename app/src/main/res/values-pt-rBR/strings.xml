@@ -665,4 +665,11 @@
     <string name="steam_dl_logged_in_as">Conectado como %1$s</string>
     <string name="steam_dl_logout">Sair</string>
     <string name="steam_dl_session_expired">A sessão Steam expirou. Faça login novamente.</string>
+    <string name="steam_dl_connections_title">Conexões paralelas: %d</string>
+    <string name="steam_dl_connections_hint">Número de fluxos de download simultâneos (maior = mais rápido, mas usa mais rede)</string>
+    <string name="steam_dl_verify_files">Verificar arquivos existentes</string>
+    <string name="steam_dl_verify_files_hint">Valida o hash SHA-1 de arquivos existentes antes de ignorá-los</string>
+    <string name="steam_dl_file_verifying">Verificando: %s</string>
+    <string name="steam_dl_file_downloading">Arquivo: %s</string>
+    <string name="steam_dl_speed_format">%.1f MB/s • %s / %s</string>
 </resources>

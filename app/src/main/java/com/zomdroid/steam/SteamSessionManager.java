@@ -48,4 +48,24 @@ public final class SteamSessionManager {
                 .remove(C.shprefs.keys.STEAM_REFRESH_TOKEN)
                 .apply();
     }
+
+    public static int getMaxConnections(@NonNull Context context) {
+        return getPrefs(context).getInt(C.shprefs.keys.STEAM_MAX_CONNECTIONS, 6);
+    }
+
+    public static void setMaxConnections(@NonNull Context context, int count) {
+        getPrefs(context).edit()
+                .putInt(C.shprefs.keys.STEAM_MAX_CONNECTIONS, Math.max(2, Math.min(12, count)))
+                .apply();
+    }
+
+    public static boolean getVerifyFiles(@NonNull Context context) {
+        return getPrefs(context).getBoolean(C.shprefs.keys.STEAM_VERIFY_FILES, true);
+    }
+
+    public static void setVerifyFiles(@NonNull Context context, boolean verify) {
+        getPrefs(context).edit()
+                .putBoolean(C.shprefs.keys.STEAM_VERIFY_FILES, verify)
+                .apply();
+    }
 }

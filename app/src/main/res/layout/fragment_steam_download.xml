@@ -228,6 +228,48 @@
                     android:inputType="textNoSuggestions"
                     android:textSize="14sp"/>
 
+                <TextView
+                    android:id="@+id/tv_dl_connections"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/steam_dl_connections_title"
+                    android:textSize="13sp"
+                    android:textColor="?attr/colorOnSurface"/>
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/slider_dl_connections"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:valueFrom="2.0"
+                    android:valueTo="12.0"
+                    android:stepSize="1.0"
+                    android:value="6.0"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/steam_dl_connections_hint"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cb_verify_files"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/steam_dl_verify_files"
+                    android:checked="true"
+                    android:textSize="13sp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/steam_dl_verify_files_hint"
+                    android:textSize="11sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
                 <Button
                     android:id="@+id/btn_dl_start"
                     android:layout_width="wrap_content"
@@ -300,6 +342,27 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/tv_dl_file"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:ellipsize="middle"
+                    android:singleLine="true"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorOnSurface"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/tv_dl_speed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:textSize="12sp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone"/>
 
                 <ProgressBar
                     android:id="@+id/progress_dl"

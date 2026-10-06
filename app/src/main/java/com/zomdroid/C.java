@@ -73,6 +73,8 @@ public class C {
             public static final String RELEASE_NOTES_SHOWN_FOR = "releaseNotesShownFor";
             public static final String STEAM_USERNAME = "steamUsername";
             public static final String STEAM_REFRESH_TOKEN = "steamRefreshToken";
+            public static final String STEAM_MAX_CONNECTIONS = "steamMaxConnections";
+            public static final String STEAM_VERIFY_FILES = "steamVerifyFiles";
         }
     }
 }

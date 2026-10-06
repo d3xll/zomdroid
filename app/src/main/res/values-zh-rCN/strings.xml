@@ -659,4 +659,11 @@
     <string name="steam_dl_logged_in_as">已登录为 %1$s</string>
     <string name="steam_dl_logout">退出登录</string>
     <string name="steam_dl_session_expired">Steam 会话已过期，请重新登录。</string>
+    <string name="steam_dl_connections_title">并发连接数：%d</string>
+    <string name="steam_dl_connections_hint">同时下载的流数量（更高速度更快，但会增加网络与 CPU 负载）</string>
+    <string name="steam_dl_verify_files">校验已有文件</string>
+    <string name="steam_dl_verify_files_hint">在跳过已有文件之前验证其 SHA-1 哈希完整性</string>
+    <string name="steam_dl_file_verifying">校验中：%s</string>
+    <string name="steam_dl_file_downloading">文件：%s</string>
+    <string name="steam_dl_speed_format">%.1f MB/s • %s / %s</string>
 </resources>

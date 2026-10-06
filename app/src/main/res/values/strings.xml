@@ -130,6 +130,13 @@
     <string name="steam_dl_password">Steam password</string>
     <string name="steam_dl_version_note">Downloads the Linux build of Project Zomboid into Downloads/zomdroid — no Termux, no PC. Build 41 is ~6–7 GB and Build 42 ~10–11 GB unpacked, so it takes a long time; if interrupted, just start the same build again and it resumes. Leave the manifest field blank for the latest build. To pin an older version instead, find it at https://steamdb.info/depot/108603/manifests/ and copy its \"DepotDownloader\" line (not \"Steam Console\") — paste the whole line here, branch included; the Build 41/42 toggle above is then ignored.</string>
     <string name="steam_dl_manifest_hint">Manifest id, or a full DepotDownloader line (blank = latest)</string>
+    <string name="steam_dl_connections_title">Parallel connections: %d</string>
+    <string name="steam_dl_connections_hint">Number of concurrent download streams (higher is faster, but increases network/CPU load)</string>
+    <string name="steam_dl_verify_files">Verify existing files</string>
+    <string name="steam_dl_verify_files_hint">Validates SHA-1 hash of existing files before skipping them</string>
+    <string name="steam_dl_file_verifying">Verifying: %s</string>
+    <string name="steam_dl_file_downloading">File: %s</string>
+    <string name="steam_dl_speed_format">%.1f MB/s • %s / %s</string>
     <string name="steam_dl_download_game">Download game</string>
     <string name="steam_dl_mods_note">Download Workshop mods by ID (the number in the workshop URL: …/sharedfiles/filedetails/?id=NUMBER). No Steam login needed. Several IDs can be space-separated. Each is saved as a .zip in Downloads/zomdroid.</string>
     <string name="steam_dl_mods_hint">Workshop IDs (space-separated)</string>

@@ -28,6 +28,7 @@ public final class SteamDownloadState
     public interface View {
         void onLog(CharSequence fullLog);
         void onPercent(int percent, boolean indeterminate);
+        default void onFileProgress(String fileName, long speedBytesPerSec, long downloadedBytes, long totalBytes, int percent) {}
         void onFinished(String message);
         CompletableFuture<String> requestSteamGuardCode(boolean previousWrong, String email);
         default void onSessionChanged() {}
@@ -39,6 +40,10 @@ public final class SteamDownloadState
     private volatile boolean downloading;
     private volatile int percent = -1;
     private volatile boolean indeterminate = true;
+    private volatile String currentFile = "";
+    private volatile long currentSpeed = 0L;
+    private volatile long downloadedBytes = 0L;
+    private volatile long totalBytes = 0L;
     private View view;
     private Context appCtx;
     private volatile Cancellable active;
@@ -47,6 +52,10 @@ public final class SteamDownloadState
 
     public boolean isDownloading() { return downloading; }
     public boolean isCancelling() { return cancelling; }
+    public String getCurrentFile() { return currentFile; }
+    public long getCurrentSpeed() { return currentSpeed; }
+    public long getDownloadedBytes() { return downloadedBytes; }
+    public long getTotalBytes() { return totalBytes; }
 
     /** Register the running downloader + its thread so the user can cancel it. */
     public void setActive(Cancellable c, Thread t) { active = c; activeThread = t; cancelling = false; }
@@ -75,6 +84,10 @@ public final class SteamDownloadState
         downloading = true;
         indeterminate = true;
         percent = -1;
+        currentFile = "";
+        currentSpeed = 0L;
+        downloadedBytes = 0L;
+        totalBytes = 0L;
         DownloadKeepAliveService.start(appCtx);
     }
 
@@ -97,6 +110,21 @@ public final class SteamDownloadState
         percent = Math.max(0, Math.min(100, p));
         indeterminate = false;
         main.post(() -> { if (view != null) view.onPercent(percent, false); });
+    }
+
+    @Override
+    public void onFileProgress(String fileName, long speedBytesPerSec, long downloaded, long total, int p) {
+        this.currentFile = fileName != null ? fileName : "";
+        this.currentSpeed = speedBytesPerSec;
+        this.downloadedBytes = downloaded;
+        this.totalBytes = total;
+        this.percent = Math.max(0, Math.min(100, p));
+        this.indeterminate = false;
+        main.post(() -> {
+            if (view != null) {
+                view.onFileProgress(this.currentFile, speedBytesPerSec, downloaded, total, this.percent);
+            }
+        });
     }
 
     @Override

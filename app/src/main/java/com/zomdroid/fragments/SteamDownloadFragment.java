@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.slider.Slider;
 import com.zomdroid.R;
 import com.zomdroid.steam.SteamDownloadState;
 import com.zomdroid.steam.SteamGameDownloader;
@@ -54,6 +55,11 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     private TextView tvSavedUser;
     private Button btnSteamLogout;
     private Button btnStart, btnModsStart, btnCancel;
+    private Slider sliderConnections;
+    private TextView tvConnectionsLabel;
+    private MaterialCheckBox cbVerifyFiles;
+    private TextView tvDlFile;
+    private TextView tvDlSpeed;
     private ProgressBar progress;
     private TextView tvStatus;
     private android.view.View blockLogin, sectionGame, sectionMods;
@@ -91,11 +97,39 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         btnStart = v.findViewById(R.id.btn_dl_start);
         btnModsStart = v.findViewById(R.id.btn_mods_start);
         btnCancel = v.findViewById(R.id.btn_dl_cancel);
+        sliderConnections = v.findViewById(R.id.slider_dl_connections);
+        tvConnectionsLabel = v.findViewById(R.id.tv_dl_connections);
+        cbVerifyFiles = v.findViewById(R.id.cb_verify_files);
+        tvDlFile = v.findViewById(R.id.tv_dl_file);
+        tvDlSpeed = v.findViewById(R.id.tv_dl_speed);
         progress = v.findViewById(R.id.progress_dl);
         tvStatus = v.findViewById(R.id.tv_dl_status);
         blockLogin = v.findViewById(R.id.block_login);
         sectionGame = v.findViewById(R.id.section_game);
         sectionMods = v.findViewById(R.id.section_mods);
+
+        if (sliderConnections != null) {
+            int savedConn = SteamSessionManager.getMaxConnections(appCtx);
+            sliderConnections.setValue(savedConn);
+            if (tvConnectionsLabel != null) {
+                tvConnectionsLabel.setText(getString(R.string.steam_dl_connections_title, savedConn));
+            }
+            sliderConnections.addOnChangeListener((slider, value, fromUser) -> {
+                int count = Math.round(value);
+                if (tvConnectionsLabel != null) {
+                    tvConnectionsLabel.setText(getString(R.string.steam_dl_connections_title, count));
+                }
+                SteamSessionManager.setMaxConnections(appCtx, count);
+            });
+        }
+
+        if (cbVerifyFiles != null) {
+            boolean savedVerify = SteamSessionManager.getVerifyFiles(appCtx);
+            cbVerifyFiles.setChecked(savedVerify);
+            cbVerifyFiles.setOnCheckedChangeListener((btn, isChecked) -> {
+                SteamSessionManager.setVerifyFiles(appCtx, isChecked);
+            });
+        }
 
         tvStatus.setMovementMethod(new ScrollingMovementMethod());
         btnStart.setOnClickListener(view -> startGame());
@@ -118,6 +152,9 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
             toggle.setVisibility(View.GONE);
             buildToggle.setVisibility(View.GONE);
             etManifest.setVisibility(View.GONE);
+            if (sliderConnections != null) sliderConnections.setVisibility(View.GONE);
+            if (tvConnectionsLabel != null) tvConnectionsLabel.setVisibility(View.GONE);
+            if (cbVerifyFiles != null) cbVerifyFiles.setVisibility(View.GONE);
             v.findViewById(R.id.tv_slow_warning).setVisibility(View.GONE);
             ((TextView) v.findViewById(R.id.tv_login_note)).setText(getString(
                     mpInstanceName != null ? R.string.mp_libs_login : R.string.macos_libs_login,
@@ -162,8 +199,12 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
                 progress.setIndeterminate(false);
                 progress.setProgress(st.getPercent());
             }
+            updateFileProgressUi(st.getCurrentFile(), st.getCurrentSpeed(),
+                    st.getDownloadedBytes(), st.getTotalBytes(), st.getPercent());
         } else {
             progress.setVisibility(View.GONE);
+            if (tvDlFile != null) tvDlFile.setVisibility(View.GONE);
+            if (tvDlSpeed != null) tvDlSpeed.setVisibility(View.GONE);
         }
     }
 
@@ -173,12 +214,6 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         super.onDestroyView();
     }
 
-    // SteamDB's depot "Manifests" tab offers two copy formats per row; only "DepotDownloader"
-    // carries the branch, e.g.:
-    //   -app 108600 -depot 108603 -manifest 769556489232787342 -beta legacy41
-    // ("Steam Console" format has no branch and is not usable here.) A bare number is also
-    // accepted, unchanged from before. -beta is absent when the manifest was on "public" at
-    // capture time — SteamDB omits it there since that is DepotDownloader's own default branch.
     private static final Pattern MANIFEST_ARG = Pattern.compile("-manifest\\s+(\\d+)");
     private static final Pattern BETA_ARG = Pattern.compile("-beta\\s+(\\S+)");
 
@@ -247,28 +282,20 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         String branch;
         String buildLabel;
         if (manifestId > 0) {
-            // A pinned manifest fully determines what gets downloaded — the Build 41/42 toggle is
-            // not consulted (and is disabled while this field is non-empty, see the TextWatcher in
-            // onViewCreated). "public" is a safe default authorization branch when the pasted line
-            // has no -beta: that happens for manifests that were on public at the time they were
-            // captured on SteamDB, since public is DepotDownloader's own default branch.
             branch = branchOverride != null ? branchOverride : "public";
             buildLabel = branchOverride != null ? branchOverride : "manifest";
         } else {
             boolean is42 = buildToggle.getCheckedButtonId() == R.id.btn_build_42;
-            // As of the 2026-07-29 42.20 release: TIS renamed the old rolling beta ("unstable") to
-            // "outdatedunstable" and stopped updating it, moved Build 42 onto public (so public now
-            // *is* whatever the newest 42.x is, tracking it automatically as TIS ships more), and
-            // designated "legacy41" as the permanent, officially-announced home for Build 41 going
-            // forward. Confirmed live via the branch listing SteamGameDownloader logs at download
-            // time — don't hardcode from a screenshot again, branches get reshuffled without notice.
             branch = is42 ? "public" : "legacy41";
             buildLabel = is42 ? "42" : "41";
         }
 
+        int maxConn = SteamSessionManager.getMaxConnections(appCtx);
+        boolean verify = SteamSessionManager.getVerifyFiles(appCtx);
+
         SteamDownloadState st = SteamDownloadState.get();
         SteamGameDownloader dl = new SteamGameDownloader(username, password, refreshToken, remember,
-                manifestId, branch, buildLabel, st);
+                manifestId, branch, buildLabel, maxConn, verify, st);
         if (macosInstanceName != null) {
             com.zomdroid.game.GameInstance instance = com.zomdroid.game.GameInstanceManager.requireSingleton()
                     .getInstanceByName(macosInstanceName);
@@ -324,6 +351,14 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         tvStatus.setText("");
         progress.setVisibility(View.VISIBLE);
         progress.setIndeterminate(true);
+        if (tvDlFile != null) {
+            tvDlFile.setText("");
+            tvDlFile.setVisibility(View.VISIBLE);
+        }
+        if (tvDlSpeed != null) {
+            tvDlSpeed.setText("");
+            tvDlSpeed.setVisibility(View.VISIBLE);
+        }
         appendLog("Connecting to Steam…");
     }
 
@@ -341,6 +376,8 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         if (cbRememberSession != null) cbRememberSession.setEnabled(enabled);
         if (btnSteamLogout != null) btnSteamLogout.setEnabled(enabled);
         if (etManifest != null) etManifest.setEnabled(enabled);
+        if (sliderConnections != null) sliderConnections.setEnabled(enabled);
+        if (cbVerifyFiles != null) cbVerifyFiles.setEnabled(enabled);
         if (btnStart != null) btnStart.setEnabled(enabled);
         if (btnModsStart != null) btnModsStart.setEnabled(enabled);
     }
@@ -388,10 +425,50 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     }
 
     @Override
+    public void onFileProgress(String fileName, long speedBytesPerSec, long downloadedBytes, long totalBytes, int percent) {
+        updateFileProgressUi(fileName, speedBytesPerSec, downloadedBytes, totalBytes, percent);
+    }
+
+    private void updateFileProgressUi(String fileName, long speedBytesPerSec, long downloadedBytes, long totalBytes, int percent) {
+        if (tvDlFile != null) {
+            if (fileName != null && !fileName.isEmpty()) {
+                tvDlFile.setVisibility(View.VISIBLE);
+                tvDlFile.setText(getString(R.string.steam_dl_file_downloading, fileName));
+            }
+        }
+        if (tvDlSpeed != null) {
+            if (totalBytes > 0) {
+                tvDlSpeed.setVisibility(View.VISIBLE);
+                double speedMb = speedBytesPerSec / (1024.0 * 1024.0);
+                String dlStr = formatBytes(downloadedBytes);
+                String totalStr = formatBytes(totalBytes);
+                tvDlSpeed.setText(String.format(java.util.Locale.US, "%.1f MB/s • %s / %s", speedMb, dlStr, totalStr));
+            }
+        }
+        if (progress != null && percent >= 0) {
+            progress.setVisibility(View.VISIBLE);
+            progress.setIndeterminate(false);
+            progress.setProgress(Math.max(0, Math.min(100, percent)));
+        }
+    }
+
+    private static String formatBytes(long bytes) {
+        if (bytes < 1024L * 1024L) {
+            return String.format(java.util.Locale.US, "%.1f KB", bytes / 1024.0);
+        } else if (bytes < 1024L * 1024L * 1024L) {
+            return String.format(java.util.Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0));
+        } else {
+            return String.format(java.util.Locale.US, "%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
+    @Override
     public void onFinished(String message) {
         setControlsEnabled(true);
         if (progress != null) progress.setVisibility(View.GONE);
         if (btnCancel != null) btnCancel.setVisibility(View.GONE);
+        if (tvDlFile != null) tvDlFile.setVisibility(View.GONE);
+        if (tvDlSpeed != null) tvDlSpeed.setVisibility(View.GONE);
         Toast.makeText(appCtx, message, Toast.LENGTH_LONG).show();
     }
 

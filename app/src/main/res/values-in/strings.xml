@@ -666,4 +666,11 @@
     <string name="steam_dl_logged_in_as">Masuk sebagai %1$s</string>
     <string name="steam_dl_logout">Keluar</string>
     <string name="steam_dl_session_expired">Sesi Steam kedaluwarsa. Silakan masuk lagi.</string>
+    <string name="steam_dl_connections_title">Koneksi paralel: %d</string>
+    <string name="steam_dl_connections_hint">Jumlah aliran unduhan bersamaan (lebih tinggi = lebih cepat, tetapi beban jaringan lebih tinggi)</string>
+    <string name="steam_dl_verify_files">Verifikasi berkas yang ada</string>
+    <string name="steam_dl_verify_files_hint">Memvalidasi hash SHA-1 dari berkas yang ada sebelum melewatinya</string>
+    <string name="steam_dl_file_verifying">Memverifikasi: %s</string>
+    <string name="steam_dl_file_downloading">Berkas: %s</string>
+    <string name="steam_dl_speed_format">%.1f MB/s • %s / %s</string>
 </resources>

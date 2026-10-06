@@ -39,14 +39,26 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import kotlinx.coroutines.Deferred;
 import kotlinx.coroutines.GlobalScope;
@@ -55,17 +67,10 @@ import kotlinx.coroutines.GlobalScope;
  * In-app Steam downloader for the Project Zomboid <b>Linux</b> build, ported & adapted from RimDroid
  * (MIT, same author).
  *
- * <p>Uses the same LOW-MEMORY manual SteamPipe pipeline as the anonymous mod downloader (download one
- * chunk → decrypt/decompress → write → next) instead of JavaSteam's high-level DepotDownloader. The
- * high-level downloader pre-allocates all ~30k files and buffers chunks in parallel, which OOMs a
- * 256 MB app heap on a ~5 GB game; the manual loop keeps the footprint to a few MB.
- *
- * <p>Logs in (credentials → Steam Mobile approval push, or Steam Guard code) because the game depot
- * key requires ownership. Output is a plain folder under the public
- * Downloads/zomdroid/ProjectZomboid_&lt;build&gt; — no instance is created here.
- *
- * <p>Manifest: blank → the latest public build; a specific manifest id → exactly that build.
- * Refresh token kept ONLY in memory (never on disk).
+ * <p>Uses an optimized, low-memory SteamPipe pipeline where chunks are pulled and written concurrently
+ * across parallel worker threads. The chunk tasks are streamed through a bounded queue and bounded
+ * open-file window, preventing both memory OOM and Android file descriptor exhaustion while
+ * maximizing CDN throughput even on multi-chunk large files.
  */
 public class SteamGameDownloader implements Runnable, Cancellable {
 
@@ -77,6 +82,7 @@ public class SteamGameDownloader implements Runnable, Cancellable {
         CompletableFuture<String> requestSteamGuardCode(boolean previousWrong, String email);
         void onProgress(String message);
         default void onPercent(int percent) {}
+        default void onFileProgress(String fileName, long speedBytesPerSec, long downloadedBytes, long totalBytes, int percent) {}
         void onDone(String message);
         default void onSessionSaved(String accountName, String refreshToken) {}
         default void onSessionExpired() {}
@@ -87,6 +93,8 @@ public class SteamGameDownloader implements Runnable, Cancellable {
     private final long manifestId;       // 0 = latest build on the branch; >0 = pin this build
     private final String branch;         // Current branches: public = stable B42, legacy41 = B41.
     private final String buildLabel;     // "41" or "42" — for the output folder name only
+    private final int maxConnections;
+    private final boolean verifyFiles;
     private final Listener listener;
     private File librariesGameDir;
     private String librariesInstanceName; // macOS pack: whose "Libraries in use" to switch on
@@ -113,7 +121,7 @@ public class SteamGameDownloader implements Runnable, Cancellable {
     public static SteamGameDownloader libraries(String username, String password, String refreshToken, boolean rememberSession,
                                                 File gameDir, LibraryPack pack, Listener listener) {
         SteamGameDownloader downloader = new SteamGameDownloader(username, password, refreshToken, rememberSession,
-                pack.manifest, pack.branch, "42", listener);
+                pack.manifest, pack.branch, "42", 4, true, listener);
         downloader.librariesGameDir = gameDir;
         downloader.libraryPack = pack;
         return downloader;
@@ -141,11 +149,17 @@ public class SteamGameDownloader implements Runnable, Cancellable {
 
     public SteamGameDownloader(String username, String password, long manifestId,
                               String branch, String buildLabel, Listener listener) {
-        this(username, password, null, true, manifestId, branch, buildLabel, listener);
+        this(username, password, null, true, manifestId, branch, buildLabel, 6, true, listener);
     }
 
     public SteamGameDownloader(String username, String password, String refreshToken, boolean rememberSession,
                               long manifestId, String branch, String buildLabel, Listener listener) {
+        this(username, password, refreshToken, rememberSession, manifestId, branch, buildLabel, 6, true, listener);
+    }
+
+    public SteamGameDownloader(String username, String password, String refreshToken, boolean rememberSession,
+                              long manifestId, String branch, String buildLabel, int maxConnections, boolean verifyFiles,
+                              Listener listener) {
         this.username = username;
         this.password = password;
         this.refreshToken = refreshToken;
@@ -154,6 +168,8 @@ public class SteamGameDownloader implements Runnable, Cancellable {
         this.manifestId = manifestId;
         this.branch = (branch != null && !branch.isEmpty()) ? branch : "public";
         this.buildLabel = (buildLabel != null && !buildLabel.isEmpty()) ? buildLabel : "41";
+        this.maxConnections = maxConnections > 0 ? maxConnections : 6;
+        this.verifyFiles = verifyFiles;
         this.listener = listener;
     }
 
@@ -483,37 +499,43 @@ public class SteamGameDownloader implements Runnable, Cancellable {
             java.util.Set<String> doneSet = loadDoneSet(doneListFile);
             if (!doneSet.isEmpty()) progress("Resuming — " + doneSet.size() + " files already downloaded.");
 
-            // Files are downloaded by a small pool rather than one at a time. The single-threaded loop
-            // this replaces spent nearly all its wall clock waiting on CDN round-trips, not on disk or
-            // CPU, so a handful of files in flight multiplies throughput without touching the reason
-            // the manual pipeline exists: peak memory stays at one chunk buffer per worker (~1 MB
-            // each) instead of JavaSteam's DepotDownloader buffering the whole depot.
-            //
-            // Parallelism is per FILE, not per chunk inside a file: the game is ~30k files and most
-            // are a single chunk, so chunk-level splitting would leave the small ones serial anyway,
-            // and per-file keeps the resume bookkeeping honest - a name reaches .zomdroid_complete
-            // only after that whole file is written.
-            final int workers = Math.max(2, Math.min(6, Runtime.getRuntime().availableProcessors()));
-            final java.util.concurrent.atomic.AtomicLong doneBytes =
-                    new java.util.concurrent.atomic.AtomicLong(0);
-            final java.util.concurrent.atomic.AtomicInteger serverCursor =
-                    new java.util.concurrent.atomic.AtomicInteger(serverIdx);
-            final java.util.concurrent.atomic.AtomicInteger lastPct =
-                    new java.util.concurrent.atomic.AtomicInteger(-1);
-            final java.util.concurrent.atomic.AtomicLong lastEmit =
-                    new java.util.concurrent.atomic.AtomicLong(0);
-            final java.util.concurrent.atomic.AtomicReference<Throwable> firstError =
-                    new java.util.concurrent.atomic.AtomicReference<>();
+            final int workers = Math.max(2, Math.min(12, maxConnections));
+            final AtomicLong doneBytes = new AtomicLong(0);
+            final AtomicInteger serverCursor = new AtomicInteger(serverIdx);
+            final AtomicLong lastEmit = new AtomicLong(0);
+            final AtomicReference<Throwable> firstError = new AtomicReference<>();
+            final AtomicLong lastSpeedBytes = new AtomicLong(0);
+            final AtomicLong lastSpeedTime = new AtomicLong(System.currentTimeMillis());
+            final AtomicLong currentSpeed = new AtomicLong(0);
 
             final List<FileData> pending = new java.util.ArrayList<>();
+            long verifyEmit = 0;
             for (FileData f : files) {
+                if (!running) { done("Download cancelled."); return; }
                 String rel = outputRelative(f);
                 if (rel == null) continue;
                 File outFile = new File(outDir, rel);
                 if (f.getFlags().contains(EDepotFileFlag.Directory)) { outFile.mkdirs(); continue; }
-                // Already complete on a previous run -> skip (count toward progress).
-                if (doneSet.contains(rel) && outFile.isFile() && outFile.length() == f.getTotalSize()
-                        && (libraryPack == null || matchesManifestHash(outFile, f))) {
+
+                boolean alreadyDone = doneSet.contains(rel) && outFile.isFile() && outFile.length() == f.getTotalSize();
+                if (alreadyDone) {
+                    if (verifyFiles) {
+                        long now = System.currentTimeMillis();
+                        if (now - verifyEmit > 300) {
+                            verifyEmit = now;
+                            int vPct = totalBytes > 0 ? (int) (doneBytes.get() * 100 / totalBytes) : 0;
+                            if (listener != null) listener.onFileProgress(rel, 0, doneBytes.get(), totalBytes, vPct);
+                        }
+                        try {
+                            if (!matchesManifestHash(outFile, f)) {
+                                pending.add(f);
+                                continue;
+                            }
+                        } catch (Exception ex) {
+                            pending.add(f);
+                            continue;
+                        }
+                    }
                     doneBytes.addAndGet(f.getTotalSize());
                     continue;
                 }
@@ -530,24 +552,39 @@ public class SteamGameDownloader implements Runnable, Cancellable {
             final File fOutDir = outDir;
             final File fDoneListFile = doneListFile;
 
-            final java.util.concurrent.ConcurrentLinkedQueue<FileData> queue =
-                    new java.util.concurrent.ConcurrentLinkedQueue<>(pending);
-            final java.util.concurrent.CountDownLatch latch =
-                    new java.util.concurrent.CountDownLatch(workers);
+            final int maxActiveFiles = Math.max(workers * 2, 8);
+            final Semaphore fileSlots = new Semaphore(maxActiveFiles);
+            final BlockingQueue<ChunkTask> chunkQueue =
+                    new LinkedBlockingQueue<>(Math.max(64, workers * 8));
+            final CountDownLatch latch = new CountDownLatch(workers);
             final List<Thread> pool = new java.util.ArrayList<>(workers);
+            final java.util.Set<ActiveFile> openFiles =
+                    Collections.newSetFromMap(new ConcurrentHashMap<>());
 
             for (int w = 0; w < workers; w++) {
                 Thread t = new Thread(() -> {
                     try {
-                        FileData f;
-                        while (running && firstError.get() == null && (f = queue.poll()) != null) {
+                        while (running && firstError.get() == null) {
+                            ChunkTask task;
                             try {
-                                downloadOneFile(f, fOutDir, fDoneListFile, fCdn, fContent, fServers,
-                                        fDepot, fDepotKey, fTokenCache, serverCursor,
-                                        doneBytes, fTotalBytes, lastPct, lastEmit);
-                            } catch (Throwable e) {
-                                firstError.compareAndSet(null, e);
-                                return;
+                                task = chunkQueue.poll(200, TimeUnit.MILLISECONDS);
+                            } catch (InterruptedException ie) {
+                                break;
+                            }
+                            if (task == null) continue;
+                            if (task == POISON_PILL) {
+                                chunkQueue.offer(POISON_PILL);
+                                break;
+                            }
+
+                            try {
+                                downloadAndWriteChunk(task, fCdn, fContent, fServers, fDepot, fDepotKey,
+                                        fTokenCache, serverCursor, doneBytes, fTotalBytes,
+                                        lastSpeedBytes, lastSpeedTime, currentSpeed, lastEmit,
+                                        fDoneListFile, fileSlots, openFiles);
+                            } catch (Throwable err) {
+                                firstError.compareAndSet(null, err);
+                                break;
                             }
                         }
                     } finally {
@@ -557,6 +594,51 @@ public class SteamGameDownloader implements Runnable, Cancellable {
                 t.setDaemon(true);
                 pool.add(t);
                 t.start();
+            }
+
+            // Enqueue chunks from pending files
+            for (FileData f : pending) {
+                if (!running || firstError.get() != null) break;
+                String rel = outputRelative(f);
+                if (rel == null) continue;
+                File outFile = new File(fOutDir, rel);
+
+                if (f.getChunks().isEmpty() || f.getTotalSize() == 0) {
+                    File parent = outFile.getParentFile();
+                    if (parent != null) parent.mkdirs();
+                    if (!outFile.exists()) {
+                        try { outFile.createNewFile(); } catch (Exception ignored) {}
+                    }
+                    appendDone(fDoneListFile, rel);
+                    continue;
+                }
+
+                while (running && firstError.get() == null) {
+                    if (fileSlots.tryAcquire(200, TimeUnit.MILLISECONDS)) break;
+                }
+                if (!running || firstError.get() != null) break;
+
+                ActiveFile af;
+                try {
+                    af = new ActiveFile(f, rel, outFile);
+                    openFiles.add(af);
+                } catch (Exception ex) {
+                    fileSlots.release();
+                    firstError.compareAndSet(null, ex);
+                    break;
+                }
+
+                for (ChunkData chunk : f.getChunks()) {
+                    ChunkTask task = new ChunkTask(af, chunk);
+                    while (running && firstError.get() == null) {
+                        if (chunkQueue.offer(task, 200, TimeUnit.MILLISECONDS)) break;
+                    }
+                    if (!running || firstError.get() != null) break;
+                }
+            }
+
+            if (running && firstError.get() == null) {
+                chunkQueue.offer(POISON_PILL);
             }
 
             try {
@@ -575,6 +657,11 @@ public class SteamGameDownloader implements Runnable, Cancellable {
                 }
                 done("Download cancelled.");
                 return;
+            } finally {
+                for (ActiveFile af : openFiles) {
+                    af.close();
+                }
+                openFiles.clear();
             }
 
             if (!running) { done("Aborted."); return; }
@@ -645,79 +732,132 @@ public class SteamGameDownloader implements Runnable, Cancellable {
         return null;
     }
 
-    /**
-     * Download one file's chunks and write them at their offsets. Runs on a pool thread; everything
-     * shared with the other workers is passed in as an atomic or guarded internally.
-     */
-    private void downloadOneFile(FileData f, File outDir, File doneListFile,
-                                 Client cdn, SteamContent content, List<Server> servers,
-                                 int depot, byte[] depotKey, Map<String, String> tokenCache,
-                                 java.util.concurrent.atomic.AtomicInteger serverCursor,
-                                 java.util.concurrent.atomic.AtomicLong doneBytes, long totalBytes,
-                                 java.util.concurrent.atomic.AtomicInteger lastPct,
-                                 java.util.concurrent.atomic.AtomicLong lastEmit) throws Exception {
-        String rel = outputRelative(f);
-        if (rel == null) return;
-        File outFile = new File(outDir, rel);
-        File parent = outFile.getParentFile();
-        if (parent != null) parent.mkdirs();
+    private static final ChunkTask POISON_PILL = new ChunkTask(null, null);
 
-        try (RandomAccessFile raf = new RandomAccessFile(outFile, "rw")) {
-            raf.setLength(f.getTotalSize());
-            for (ChunkData chunk : f.getChunks()) {
-                if (!running) return;
-                byte[] dest = new byte[Math.max(chunk.getCompressedLength(), chunk.getUncompressedLength())];
-                int written = -1;
-                Exception chunkErr = null;
-                // Steam CDN edge nodes routinely 503/timeout under load. Retry patiently with
-                // exponential backoff + server rotation instead of aborting the whole download.
-                final int maxTries = 30;
-                for (int t = 0; t < maxTries && written < 0; t++) {
-                    if (!running) return;
-                    // Round-robin, not sticky: the single-threaded version stayed on one healthy
-                    // server and only moved after a failure, which with several workers would point
-                    // all of them at the same edge node - the very thing that makes those nodes
-                    // start returning 503. Advancing per attempt spreads the load and also lands a
-                    // retry somewhere else by construction.
-                    Server s = servers.get(Math.floorMod(serverCursor.getAndIncrement(), servers.size()));
-                    try {
-                        written = cdn.downloadDepotChunkFuture(depot, chunk, s, dest, depotKey, null,
-                                cdnTokenFor(content, PROJECT_ZOMBOID_APP_ID, depot, s, tokenCache))
-                                .get(120, TimeUnit.SECONDS);
-                    } catch (Exception e) {
-                        chunkErr = e;
-                        Log.w(TAG, "chunk via " + s.getHost() + " failed (try " + (t + 1) + "/" + maxTries + "): " + describe(e));
-                        long now = System.currentTimeMillis();
-                        long prev = lastEmit.get();
-                        if (now - prev > 1500 && lastEmit.compareAndSet(prev, now) && listener != null) {
-                            listener.onProgress("Steam CDN busy — retrying… ("
-                                    + (doneBytes.get() / (1024 * 1024)) + " / " + (totalBytes / (1024 * 1024)) + " MB)");
-                        }
-                        long backoff = Math.min(10000L, 500L * (1L << Math.min(t, 4))); // 0.5..10s
-                        try { Thread.sleep(backoff); } catch (InterruptedException ignored) { return; }
-                    }
-                }
-                if (written < 0) throw chunkErr != null ? chunkErr : new java.io.IOException("chunk download failed");
-                raf.seek(chunk.getOffset());
-                raf.write(dest, 0, written);
-                long total = doneBytes.addAndGet(written);
+    private static class ActiveFile {
+        final FileData fileData;
+        final String relPath;
+        final File outFile;
+        final RandomAccessFile raf;
+        final FileChannel channel;
+        final AtomicInteger remainingChunks;
+        final AtomicBoolean closed = new AtomicBoolean(false);
 
-                long now = System.currentTimeMillis();
-                int pct = totalBytes > 0 ? (int) (total * 100 / totalBytes) : 0;
-                long prev = lastEmit.get();
-                if (pct != lastPct.get() && now - prev > 500 && lastEmit.compareAndSet(prev, now)) {
-                    lastPct.set(pct);
-                    progress(pct + "%  (" + (total / (1024 * 1024)) + " / " + (totalBytes / (1024 * 1024)) + " MB)");
-                    if (listener != null) listener.onPercent(pct);
-                }
+        ActiveFile(FileData fileData, String relPath, File outFile) throws Exception {
+            this.fileData = fileData;
+            this.relPath = relPath;
+            this.outFile = outFile;
+            this.remainingChunks = new AtomicInteger(fileData.getChunks().size());
+            File parent = outFile.getParentFile();
+            if (parent != null) parent.mkdirs();
+            this.raf = new RandomAccessFile(outFile, "rw");
+            if (fileData.getTotalSize() > 0) {
+                this.raf.setLength(fileData.getTotalSize());
+            }
+            this.channel = this.raf.getChannel();
+        }
+
+        void close() {
+            if (closed.compareAndSet(false, true)) {
+                try { channel.close(); } catch (Throwable ignored) {}
+                try { raf.close(); } catch (Throwable ignored) {}
             }
         }
-        // File fully written — record it so a restart of this build can skip it. Only reached when
-        // every chunk landed, so a half-written file is never marked complete.
-        if (running) {
-            if (libraryPack != null && !matchesManifestHash(outFile, f))
-                throw new java.io.IOException("File hash mismatch: " + rel);
-            appendDone(doneListFile, rel);
+    }
+
+    private static class ChunkTask {
+        final ActiveFile activeFile;
+        final ChunkData chunk;
+
+        ChunkTask(ActiveFile activeFile, ChunkData chunk) {
+            this.activeFile = activeFile;
+            this.chunk = chunk;
+        }
+    }
+
+    private void downloadAndWriteChunk(ChunkTask task, Client cdn, SteamContent content,
+                                       List<Server> servers, int depot, byte[] depotKey,
+                                       Map<String, String> tokenCache,
+                                       AtomicInteger serverCursor,
+                                       AtomicLong doneBytes, long totalBytes,
+                                       AtomicLong lastSpeedBytes,
+                                       AtomicLong lastSpeedTime,
+                                       AtomicLong currentSpeed,
+                                       AtomicLong lastEmit,
+                                       File doneListFile,
+                                       Semaphore fileSlots,
+                                       java.util.Set<ActiveFile> openFiles) throws Exception {
+        ActiveFile af = task.activeFile;
+        ChunkData chunk = task.chunk;
+        byte[] dest = new byte[Math.max(chunk.getCompressedLength(), chunk.getUncompressedLength())];
+        int written = -1;
+        Exception chunkErr = null;
+        final int maxTries = 30;
+
+        for (int t = 0; t < maxTries && written < 0; t++) {
+            if (!running) return;
+            Server s = servers.get(Math.floorMod(serverCursor.getAndIncrement(), servers.size()));
+            try {
+                written = cdn.downloadDepotChunkFuture(depot, chunk, s, dest, depotKey, null,
+                        cdnTokenFor(content, PROJECT_ZOMBOID_APP_ID, depot, s, tokenCache))
+                        .get(120, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                chunkErr = e;
+                Log.w(TAG, "chunk " + af.relPath + " via " + s.getHost() + " failed (try " + (t + 1) + "/" + maxTries + "): " + describe(e));
+                long now = System.currentTimeMillis();
+                long prev = lastEmit.get();
+                if (now - prev > 1500 && lastEmit.compareAndSet(prev, now) && listener != null) {
+                    listener.onProgress("Steam CDN busy — retrying… ("
+                            + (doneBytes.get() / (1024 * 1024)) + " / " + (totalBytes / (1024 * 1024)) + " MB)");
+                }
+                long backoff = Math.min(10000L, 500L * (1L << Math.min(t, 4))); // 0.5..10s
+                try { Thread.sleep(backoff); } catch (InterruptedException ignored) { return; }
+            }
+        }
+        if (written < 0) throw chunkErr != null ? chunkErr : new IOException("chunk download failed for " + af.relPath);
+
+        ByteBuffer buf = ByteBuffer.wrap(dest, 0, written);
+        long pos = chunk.getOffset();
+        while (buf.hasRemaining()) {
+            int n = af.channel.write(buf, pos);
+            pos += n;
+        }
+
+        long total = doneBytes.addAndGet(written);
+        long now = System.currentTimeMillis();
+        long prevTime = lastSpeedTime.get();
+        long diffTime = now - prevTime;
+        if (diffTime >= 1000L) {
+            long prevBytes = lastSpeedBytes.get();
+            long diffBytes = total - prevBytes;
+            if (lastSpeedTime.compareAndSet(prevTime, now)) {
+                lastSpeedBytes.set(total);
+                currentSpeed.set(Math.max(0, (diffBytes * 1000L) / diffTime));
+            }
+        }
+
+        long spd = currentSpeed.get();
+        int pct = totalBytes > 0 ? (int) (total * 100 / totalBytes) : 0;
+        long prev = lastEmit.get();
+        if (now - prev > 350 && lastEmit.compareAndSet(prev, now)) {
+            if (listener != null) {
+                listener.onFileProgress(af.relPath, spd, total, totalBytes, pct);
+                listener.onPercent(pct);
+            }
+        }
+
+        if (af.remainingChunks.decrementAndGet() == 0) {
+            af.close();
+            openFiles.remove(af);
+            fileSlots.release();
+            if (running) {
+                if (libraryPack != null && !matchesManifestHash(af.outFile, af.fileData))
+                    throw new IOException("File hash mismatch: " + af.relPath);
+                appendDone(doneListFile, af.relPath);
+                if (listener != null) {
+                    listener.onFileProgress(af.relPath, currentSpeed.get(), doneBytes.get(), totalBytes, pct);
+                }
+            }
         }
     }
 
