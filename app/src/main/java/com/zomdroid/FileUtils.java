@@ -12,6 +12,7 @@ import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -211,5 +212,95 @@ public class FileUtils {
         if (filename.startsWith(".")) return false;
 
         return filename.length() <= 40;
+    }
+
+    // Files/dirs that mark the real Project Zomboid install root, across all builds:
+    // desktop launcher script + its manifest, the 42.12+ fat jar, and the classes dir.
+    public static final String[] GAME_ROOT_MARKERS = {
+            "ProjectZomboid64.json", "ProjectZomboid64", "projectzomboid.jar", "zombie"
+    };
+
+    /** True if dir DIRECTLY contains any PZ root marker. */
+    public static boolean isGameRoot(File dir) {
+        if (dir == null || !dir.isDirectory()) return false;
+        File[] files = dir.listFiles();
+        if (files == null) return false;
+        for (File f : files) {
+            for (String marker : GAME_ROOT_MARKERS) {
+                if (f.getName().equalsIgnoreCase(marker)) return true;
+            }
+        }
+        return false;
+    }
+
+    /** Recursively locate the game root (this dir or a descendant). null if none found. */
+    public static File findGameRoot(File dir) {
+        if (isGameRoot(dir)) return dir;
+        File[] children = dir.listFiles(FileUtils::isWalkableDirectory);
+        if (children == null) return null;
+        for (File child : children) {
+            File found = findGameRoot(child);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /**
+     * Resolves a Uri (tree, document, or file) to a local File if accessible.
+     */
+    @Nullable
+    public static File getFileFromUri(Context context, Uri uri) {
+        if (uri == null) return null;
+        if ("file".equalsIgnoreCase(uri.getScheme())) {
+            String path = uri.getPath();
+            return path != null ? new File(path) : null;
+        }
+        try {
+            if (DocumentsContract.isTreeUri(uri)) {
+                String docId = DocumentsContract.getTreeDocumentId(uri);
+                return getFileFromDocumentId(context, docId);
+            } else if (DocumentsContract.isDocumentUri(context, uri)) {
+                String docId = DocumentsContract.getDocumentId(uri);
+                return getFileFromDocumentId(context, docId);
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    @Nullable
+    private static File getFileFromDocumentId(Context context, String docId) {
+        if (docId == null) return null;
+        if (docId.startsWith("raw:")) {
+            return new File(docId.substring(4));
+        }
+        String[] parts = docId.split(":", 2);
+        String type = parts[0];
+        String relPath = parts.length > 1 ? parts[1] : "";
+
+        if ("primary".equalsIgnoreCase(type)) {
+            return new File(Environment.getExternalStorageDirectory(), relPath);
+        }
+        File candidate = new File("/storage/" + type, relPath);
+        if (candidate.exists()) return candidate;
+
+        if (context != null) {
+            File[] dirs = context.getExternalFilesDirs(null);
+            if (dirs != null) {
+                for (File d : dirs) {
+                    if (d != null) {
+                        String p = d.getAbsolutePath();
+                        int idx = p.indexOf("/Android/");
+                        if (idx > 0) {
+                            File root = new File(p.substring(0, idx));
+                            if (root.getName().equalsIgnoreCase(type)) {
+                                File f = new File(root, relPath);
+                                if (f.exists()) return f;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return candidate;
     }
 }

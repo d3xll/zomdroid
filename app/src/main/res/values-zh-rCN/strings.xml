@@ -36,12 +36,18 @@
 
     <string name="game_instance_name">名称</string>
     <string name="game_instance_preset">预设</string>
-    <string name="game_instance_files">游戏文件（.zip）</string>
-    <string name="game_instance_browse_files_hint">浏览文件…</string>
+    <string name="game_instance_files">游戏文件（文件夹或 .zip）</string>
+    <string name="game_instance_browse_files_hint">选择文件夹或 .zip…</string>
     <string name="game_instance_no_file_selected">未选择文件</string>
     <string name="game_instance_name_invalid">名称无效</string>
     <string name="game_instance_name_already_exists">已存在</string>
-    <string name="game_instance_unsupported_extension">仅支持 .zip 压缩包</string>
+    <string name="game_instance_unsupported_extension">仅支持游戏文件夹和 .zip 压缩包</string>
+    <string name="game_source_dialog_title">选择游戏来源</string>
+    <string name="game_source_folder">游戏文件夹</string>
+    <string name="game_source_zip">ZIP 压缩包</string>
+    <string name="copying_files">正在复制游戏文件…</string>
+    <string name="game_folder_storage_access_message">为了快速导入游戏文件夹，建议授予“所有文件访问权限”。</string>
+    <string name="dialog_button_continue_without">仍然继续</string>
 
     <string name="dialog_button_ok">确定</string>
     <string name="dialog_button_accept">接受</string>

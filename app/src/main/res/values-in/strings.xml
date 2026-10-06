@@ -35,12 +35,18 @@
 
     <string name="game_instance_name">Nama</string>
     <string name="game_instance_preset">Preset</string>
-    <string name="game_instance_files">File game (.zip)</string>
-    <string name="game_instance_browse_files_hint">Cari file…</string>
+    <string name="game_instance_files">File game (folder atau .zip)</string>
+    <string name="game_instance_browse_files_hint">Pilih folder atau .zip…</string>
     <string name="game_instance_no_file_selected">Tidak ada file dipilih</string>
     <string name="game_instance_name_invalid">Nama tidak valid</string>
     <string name="game_instance_name_already_exists">Sudah ada</string>
-    <string name="game_instance_unsupported_extension">Hanya arsip .zip yang didukung</string>
+    <string name="game_instance_unsupported_extension">Hanya folder game dan arsip .zip yang didukung</string>
+    <string name="game_source_dialog_title">Pilih sumber game</string>
+    <string name="game_source_folder">Folder game</string>
+    <string name="game_source_zip">Arsip ZIP</string>
+    <string name="copying_files">Menyalin file game…</string>
+    <string name="game_folder_storage_access_message">Untuk mengimpor folder game dengan cepat, izin \"Akses semua file\" disarankan.</string>
+    <string name="dialog_button_continue_without">Lanjutkan saja</string>
 
     <string name="dialog_button_ok">OK</string>
     <string name="dialog_button_accept">Terima</string>

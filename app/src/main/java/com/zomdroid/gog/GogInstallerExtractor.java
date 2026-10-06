@@ -49,6 +49,7 @@ public final class GogInstallerExtractor {
 
     /** The archive kinds the installer service tells apart; passed along as an intent extra. */
     public static final String KIND_GAME_ZIP = "GAME_ZIP";
+    public static final String KIND_GAME_DIR = "GAME_DIR";
     public static final String KIND_INSTALLER = "GOG_INSTALLER";
     public static final String KIND_BUNDLE = "GOG_BUNDLE";
 

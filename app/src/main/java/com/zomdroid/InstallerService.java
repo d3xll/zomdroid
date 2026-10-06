@@ -19,6 +19,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.LiveData;
@@ -50,6 +51,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -1939,6 +1941,104 @@ public class InstallerService extends Service implements TaskProgressListener {
         }
     }
 
+    private void installGameFromDir(GameInstance gameInstance, Uri dirUri) throws IOException {
+        File gameDir = new File(gameInstance.getGamePath());
+        File srcDir = FileUtils.getFileFromUri(this, dirUri);
+        if (srcDir != null && srcDir.isDirectory() && srcDir.canRead()) {
+            copyDirectoryWithProgress(srcDir, gameDir);
+        } else {
+            copyDocumentTreeWithProgress(dirUri, gameDir);
+        }
+    }
+
+    private void copyDirectoryWithProgress(File src, File dst) throws IOException {
+        onProgressUpdate(getString(R.string.copying_files), -1, 0);
+        long totalBytes = calculateDirectorySize(src);
+        long[] bytesCopied = new long[]{0};
+        copyDirectoryProgressInternal(src, dst, totalBytes, bytesCopied);
+    }
+
+    private static long calculateDirectorySize(File dir) {
+        if (dir == null || !dir.exists() || Files.isSymbolicLink(dir.toPath())) return 0;
+        long size = 0;
+        File[] files = dir.listFiles();
+        if (files == null) return 0;
+        for (File f : files) {
+            if (Files.isSymbolicLink(f.toPath())) continue;
+            if (f.isDirectory()) {
+                size += calculateDirectorySize(f);
+            } else {
+                size += f.length();
+            }
+        }
+        return size;
+    }
+
+    private void copyDirectoryProgressInternal(File src, File dst, long totalBytes, long[] bytesCopied) throws IOException {
+        if (!dst.exists() && !dst.mkdirs()) {
+            throw new IOException("Failed to create directory " + dst.getAbsolutePath());
+        }
+        File[] files = src.listFiles();
+        if (files == null) return;
+        byte[] buf = new byte[1024 * 1024];
+        for (File f : files) {
+            if (Files.isSymbolicLink(f.toPath())) continue;
+            File target = new File(dst, f.getName());
+            if (f.isDirectory()) {
+                copyDirectoryProgressInternal(f, target, totalBytes, bytesCopied);
+            } else {
+                try (InputStream is = new BufferedInputStream(new FileInputStream(f), 1024 * 1024);
+                     OutputStream os = new BufferedOutputStream(new FileOutputStream(target), 1024 * 1024)) {
+                    int r;
+                    while ((r = is.read(buf)) != -1) {
+                        os.write(buf, 0, r);
+                        bytesCopied[0] += r;
+                        if (totalBytes > 0) {
+                            int progress = (int) ((bytesCopied[0] * 100) / totalBytes);
+                            onProgressUpdate(getString(R.string.copying_files), progress, 100);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void copyDocumentTreeWithProgress(Uri treeUri, File dst) throws IOException {
+        DocumentFile root = DocumentFile.fromTreeUri(this, treeUri);
+        if (root == null || !root.isDirectory()) {
+            throw new IOException("Cannot access game directory tree from URI: " + treeUri);
+        }
+        onProgressUpdate(getString(R.string.copying_files), -1, 0);
+        copyDocumentDirInternal(root, dst);
+    }
+
+    private void copyDocumentDirInternal(DocumentFile srcDir, File dstDir) throws IOException {
+        if (!dstDir.exists() && !dstDir.mkdirs()) {
+            throw new IOException("Failed to create directory " + dstDir.getAbsolutePath());
+        }
+        DocumentFile[] children = srcDir.listFiles();
+        if (children == null) return;
+        byte[] buf = new byte[512 * 1024];
+        for (DocumentFile child : children) {
+            String name = child.getName();
+            if (name == null) continue;
+            File target = new File(dstDir, name);
+            if (child.isDirectory()) {
+                copyDocumentDirInternal(child, target);
+            } else {
+                try (InputStream is = getContentResolver().openInputStream(child.getUri());
+                     OutputStream os = new BufferedOutputStream(new FileOutputStream(target), 512 * 1024)) {
+                    if (is != null) {
+                        int r;
+                        while ((r = is.read(buf)) != -1) {
+                            os.write(buf, 0, r);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // The game files come in three shapes: the usual ZIP of the Linux build, GOG's Linux installer
     // (a shell script with the game ZIP appended, handed over by path from the GOG downloader), or
     // a ZIP wrapping such installers, which is what a file picker can deliver. The kind is decided
@@ -1973,6 +2073,8 @@ public class InstallerService extends Service implements TaskProgressListener {
             } finally {
                 FileUtils.deleteDirectory(cache);
             }
+        } else if (GogInstallerExtractor.KIND_GAME_DIR.equals(kind)) {
+            installGameFromDir(gameInstance, archiveUri);
         } else {
             installGameFromZip(gameInstance, archiveUri);
         }
@@ -2002,42 +2104,11 @@ public class InstallerService extends Service implements TaskProgressListener {
     }
 
     // -------------------- GAME ROOT DRILL / UNWRAP --------------------
-    // Files/dirs that mark the real Project Zomboid install root, across all builds:
-    // desktop launcher script + its manifest, the 42.12+ fat jar, and the classes dir.
-    private static final String[] GAME_ROOT_MARKERS = {
-            "ProjectZomboid64.json", "ProjectZomboid64", "projectzomboid.jar", "zombie"
-    };
-
-    // True if dir DIRECTLY contains any PZ root marker.
-    private boolean isGameRoot(File dir) {
-        if (dir == null || !dir.isDirectory()) return false;
-        File[] files = dir.listFiles();
-        if (files == null) return false;
-        for (File f : files) {
-            for (String marker : GAME_ROOT_MARKERS) {
-                if (f.getName().equalsIgnoreCase(marker)) return true;
-            }
-        }
-        return false;
-    }
-
-    // Recursively locate the game root (this dir or a descendant). null if none found.
-    private File findGameRoot(File dir) {
-        if (isGameRoot(dir)) return dir;
-        File[] children = dir.listFiles(FileUtils::isWalkableDirectory);
-        if (children == null) return null;
-        for (File child : children) {
-            File found = findGameRoot(child);
-            if (found != null) return found;
-        }
-        return null;
-    }
-
     // If the extracted game sits inside one or more wrapper folders, lift the real root up so
     // its contents live directly under gameDir. No-op if already flat or no PZ root is found.
     private void flattenGameRootIfWrapped(File gameDir) throws IOException {
-        if (isGameRoot(gameDir)) return; // already flat
-        File root = findGameRoot(gameDir);
+        if (FileUtils.isGameRoot(gameDir)) return; // already flat
+        File root = FileUtils.findGameRoot(gameDir);
         if (root == null || root.equals(gameDir)) return; // nothing PZ-like nested; launch check will report
 
         Log.i(LOG_TAG, "Game root nested at " + root + " — flattening into " + gameDir);

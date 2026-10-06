@@ -36,12 +36,18 @@
 
     <string name="game_instance_name">Nome</string>
     <string name="game_instance_preset">Preset</string>
-    <string name="game_instance_files">Arquivos do jogo (.zip)</string>
-    <string name="game_instance_browse_files_hint">Procurar arquivos…</string>
+    <string name="game_instance_files">Arquivos do jogo (pasta ou .zip)</string>
+    <string name="game_instance_browse_files_hint">Selecionar pasta ou .zip…</string>
     <string name="game_instance_no_file_selected">Nenhum arquivo selecionado</string>
     <string name="game_instance_name_invalid">Nome inválido</string>
     <string name="game_instance_name_already_exists">Já existe</string>
-    <string name="game_instance_unsupported_extension">Apenas arquivos .zip são suportados</string>
+    <string name="game_instance_unsupported_extension">Apenas pastas do jogo e arquivos .zip são suportados</string>
+    <string name="game_source_dialog_title">Selecionar origem do jogo</string>
+    <string name="game_source_folder">Pasta do jogo</string>
+    <string name="game_source_zip">Arquivo ZIP</string>
+    <string name="copying_files">Copiando arquivos do jogo…</string>
+    <string name="game_folder_storage_access_message">Para importar uma pasta do jogo rapidamente, a permissão \"Acesso a todos os arquivos\" é recomendada.</string>
+    <string name="dialog_button_continue_without">Continuar mesmo assim</string>
 
     <string name="dialog_button_ok">OK</string>
     <string name="dialog_button_accept">Aceitar</string>

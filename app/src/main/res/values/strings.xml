@@ -45,12 +45,18 @@
 
     <string name="game_instance_name">Name</string>
     <string name="game_instance_preset">Preset</string>
-    <string name="game_instance_files">Game files (.zip)</string>
-    <string name="game_instance_browse_files_hint">Browse for files…</string>
+    <string name="game_instance_files">Game files (folder or .zip)</string>
+    <string name="game_instance_browse_files_hint">Select game folder or .zip…</string>
     <string name="game_instance_no_file_selected">No files selected</string>
     <string name="game_instance_name_invalid">Invalid name</string>
     <string name="game_instance_name_already_exists">Already exists</string>
-    <string name="game_instance_unsupported_extension">Only .zip archives are supported</string>
+    <string name="game_instance_unsupported_extension">Only game folders and .zip archives are supported</string>
+    <string name="game_source_dialog_title">Select game files source</string>
+    <string name="game_source_folder">Game folder</string>
+    <string name="game_source_zip">ZIP archive</string>
+    <string name="copying_files">Copying game files…</string>
+    <string name="game_folder_storage_access_message">To import a game folder quickly, \"All files access\" permission is recommended. Otherwise, copying through system storage provider will be much slower.</string>
+    <string name="dialog_button_continue_without">Continue anyway</string>
 
     <string name="dialog_button_ok">OK</string>
     <string name="dialog_button_accept">Accept</string>

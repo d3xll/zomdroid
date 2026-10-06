@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -20,12 +23,16 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
+import com.zomdroid.FileUtils;
 import com.zomdroid.InstallerService;
 import com.zomdroid.LauncherPreferences;
 import com.zomdroid.R;
@@ -85,6 +92,26 @@ public class NewGameInstanceFragment extends Fragment {
                 } else {
                     Toast.makeText(requireContext(), getString(R.string.game_instance_unsupported_extension), Toast.LENGTH_SHORT).show();
                 }
+            });
+
+    // Launcher for selecting game folder
+    private final ActivityResultLauncher<Uri> actionOpenFolderLauncher =
+            registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
+                if (uri == null) return;
+                try {
+                    requireContext().getContentResolver().takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    );
+                } catch (Exception ignored) {}
+
+                gameFilesZipUri = uri;
+                detectedPreset = null;
+                archiveKind = GogInstallerExtractor.KIND_GAME_DIR;
+                binding.newGameInstanceBannerIv.setImageResource(R.drawable.banner_default);
+                String folderName = extractFolderName(uri);
+                binding.newGameInstanceFilesPathEt.setText(folderName);
+                detectAndSelectPreset(uri);
             });
 
     // Launcher for selecting native libs ZIP
@@ -180,23 +207,22 @@ public class NewGameInstanceFragment extends Fragment {
         // new instance's settings on its "presets" button.
         binding.newGameInstanceOpenSettingsTv.setVisibility(View.GONE);
 
-        // Browse button for game ZIP
+        // Browse button for game files (folder or ZIP)
         binding.newGameInstanceFilesBrowseIb.setOnClickListener(v ->
-                actionOpenDocumentLauncher.launch(ZIP_MIME));
+                showGameFilesSourceDialog());
 
         // Browse button for native libs ZIP
         binding.newGameInstanceNativeLibsBrowseIb.setOnClickListener(v ->
                 actionOpenNativeLibsLauncher.launch(ZIP_MIME));
 
-        // Opened with the file already chosen (see ARG_PRESELECTED_FILE). A path of our own never
-        // goes through the picker, so its ZIP-only rule does not apply; detection reads the
-        // installer in place.
+        // Opened with the file or directory already chosen (see ARG_PRESELECTED_FILE).
         String preselected = getArguments() == null ? null : getArguments().getString(ARG_PRESELECTED_FILE);
         if (preselected != null) {
             File chosen = new File(preselected);
-            if (chosen.isFile()) {
+            if (chosen.exists()) {
                 gameFilesZipUri = Uri.fromFile(chosen);
                 detectedPreset = null;
+                archiveKind = chosen.isDirectory() ? GogInstallerExtractor.KIND_GAME_DIR : GogInstallerExtractor.KIND_GAME_ZIP;
                 binding.newGameInstanceFilesPathEt.setText(chosen.getName());
                 detectAndSelectPreset(gameFilesZipUri);
             }
@@ -276,6 +302,8 @@ public class NewGameInstanceFragment extends Fragment {
         installerIntent.putExtra(InstallerService.EXTRA_COMMAND, InstallerService.Task.CREATE_GAME_INSTANCE.ordinal());
         installerIntent.putExtra(InstallerService.EXTRA_GAME_INSTANCE_NAME, gameInstance.getName());
         installerIntent.putExtra(InstallerService.EXTRA_ARCHIVE_URI, gameFilesZipUri);
+        installerIntent.setData(gameFilesZipUri);
+        installerIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         installerIntent.putExtra(InstallerService.EXTRA_INSTALL_PRESET_NAME, selectedPreset.name);
         installerIntent.putExtra(InstallerService.EXTRA_GPU_VENDOR, gpu.name());
         installerIntent.putExtra(InstallerService.EXTRA_ARCHIVE_KIND, archiveKind);
@@ -299,6 +327,57 @@ public class NewGameInstanceFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    private void showGameFilesSourceDialog() {
+        CharSequence[] items = new CharSequence[]{
+                getString(R.string.game_source_folder),
+                getString(R.string.game_source_zip)
+        };
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.game_source_dialog_title)
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) {
+                        pickGameFolder();
+                    } else {
+                        actionOpenDocumentLauncher.launch(ZIP_MIME);
+                    }
+                })
+                .show();
+    }
+
+    private void pickGameFolder() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.steam_dl_storage_title)
+                    .setMessage(R.string.game_folder_storage_access_message)
+                    .setPositiveButton(R.string.steam_dl_grant, (d, w) -> requestAllFilesAccess())
+                    .setNegativeButton(R.string.dialog_button_continue_without, (d, w) -> actionOpenFolderLauncher.launch(null))
+                    .show();
+            return;
+        }
+        actionOpenFolderLauncher.launch(null);
+    }
+
+    private void requestAllFilesAccess() {
+        try {
+            startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:" + requireContext().getPackageName())));
+        } catch (Exception e) {
+            startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
+        }
+    }
+
+    private String extractFolderName(Uri uri) {
+        DocumentFile doc = DocumentFile.fromTreeUri(requireContext(), uri);
+        if (doc != null && doc.getName() != null && !doc.getName().isEmpty()) {
+            return doc.getName();
+        }
+        File f = FileUtils.getFileFromUri(requireContext(), uri);
+        if (f != null && f.getName() != null && !f.getName().isEmpty()) {
+            return f.getName();
+        }
+        return uri.getLastPathSegment() != null ? uri.getLastPathSegment() : "Folder";
     }
 
     private String extractFileName(Uri uri) {
@@ -373,6 +452,29 @@ public class NewGameInstanceFragment extends Fragment {
     // the extracted files. Returns null if the archive cannot be read (e.g. a non-seekable provider).
     private Detection detect(Context ctx, Uri uri) {
         long t0 = System.currentTimeMillis();
+        if (GogInstallerExtractor.KIND_GAME_DIR.equals(archiveKind)) {
+            File dir = FileUtils.getFileFromUri(ctx, uri);
+            if (dir != null && dir.isDirectory()) {
+                File root = FileUtils.findGameRoot(dir);
+                File target = (root != null) ? root : dir;
+                InstallationPreset preset = PresetManager.detectFromGameDir(target);
+                if (preset != null) {
+                    android.util.Log.i("PresetDetect", "detect dir: " + preset.name + " took=" + (System.currentTimeMillis() - t0) + "ms");
+                    return new Detection(preset, GogInstallerExtractor.KIND_GAME_DIR);
+                }
+            }
+            List<String> names = dirNamesFromDocumentTree(ctx, uri);
+            if (names != null && !names.isEmpty()) {
+                int idx = PresetManager.detectPresetIndex(names);
+                List<InstallationPreset> presets = PresetManager.getPresets();
+                if (idx >= 0 && idx < presets.size()) {
+                    android.util.Log.i("PresetDetect", "detect doc tree: idx=" + idx + " took=" + (System.currentTimeMillis() - t0) + "ms");
+                    return new Detection(presets.get(idx), GogInstallerExtractor.KIND_GAME_DIR);
+                }
+            }
+            return null;
+        }
+
         List<String> names = entryNames(ctx, uri);
         if (names == null) return null;
         String kind = GogInstallerExtractor.KIND_GAME_ZIP;
@@ -391,6 +493,31 @@ public class NewGameInstanceFragment extends Fragment {
         List<InstallationPreset> presets = PresetManager.getPresets();
         if (idx < 0 || idx >= presets.size()) return null;
         return new Detection(presets.get(idx), kind);
+    }
+
+    private List<String> dirNamesFromDocumentTree(Context ctx, Uri uri) {
+        DocumentFile root = DocumentFile.fromTreeUri(ctx, uri);
+        if (root == null || !root.isDirectory()) return null;
+        List<String> names = new ArrayList<>();
+        DocumentFile[] top = root.listFiles();
+        if (top == null) return null;
+        for (DocumentFile f : top) {
+            String fName = f.getName();
+            if (fName == null) continue;
+            names.add(fName);
+            if (f.isDirectory()) {
+                DocumentFile[] inner = f.listFiles();
+                if (inner != null) {
+                    for (DocumentFile g : inner) {
+                        String gName = g.getName();
+                        if (gName != null) {
+                            names.add(fName + "/" + gName);
+                        }
+                    }
+                }
+            }
+        }
+        return names;
     }
 
     // The entry names of the archive behind uri, or null if it cannot be read as a ZIP.

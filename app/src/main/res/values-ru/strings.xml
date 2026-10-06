@@ -36,12 +36,18 @@
 
     <string name="game_instance_name">Название</string>
     <string name="game_instance_preset">Пресет</string>
-    <string name="game_instance_files">Файлы игры (.zip)</string>
-    <string name="game_instance_browse_files_hint">Выбрать файлы…</string>
+    <string name="game_instance_files">Файлы игры (папка или .zip)</string>
+    <string name="game_instance_browse_files_hint">Выбрать папку или .zip…</string>
     <string name="game_instance_no_file_selected">Файлы не выбраны</string>
     <string name="game_instance_name_invalid">Недопустимое название</string>
     <string name="game_instance_name_already_exists">Уже существует</string>
-    <string name="game_instance_unsupported_extension">Поддерживаются только .zip архивы</string>
+    <string name="game_instance_unsupported_extension">Поддерживаются только папки с игрой и .zip архивы</string>
+    <string name="game_source_dialog_title">Выберите источник игры</string>
+    <string name="game_source_folder">Папка с игрой</string>
+    <string name="game_source_zip">ZIP-архив</string>
+    <string name="copying_files">Копирование файлов игры…</string>
+    <string name="game_folder_storage_access_message">Для быстрого импорта папки с игрой рекомендуется разрешение «Доступ ко всем файлам». Иначе копирование через системный провайдер займет больше времени.</string>
+    <string name="dialog_button_continue_without">Продолжить без него</string>
 
     <string name="dialog_button_ok">ОК</string>
     <string name="dialog_button_accept">Принять</string>
