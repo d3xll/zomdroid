@@ -662,4 +662,8 @@
     <string name="launcher_empty_body">Untuk mulai bermain, buat instance — salinan Project Zomboid yang terpasang. Tambahkan file game dengan tombol + di atas, atau unduh game dari Steam atau GOG lewat menu samping. Unduhan dari Steam harus dikemas dulu ke .zip; dari GOG, ketuk “Buat instance” setelah unduhan selesai.</string>
     <string name="launcher_empty_quick_start">Mulai cepat</string>
     <string name="action_play">Mainkan</string>
+    <string name="steam_dl_remember_session">Ingat login</string>
+    <string name="steam_dl_logged_in_as">Masuk sebagai %1$s</string>
+    <string name="steam_dl_logout">Keluar</string>
+    <string name="steam_dl_session_expired">Sesi Steam kedaluwarsa. Silakan masuk lagi.</string>
 </resources>

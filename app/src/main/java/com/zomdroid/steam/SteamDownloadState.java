@@ -30,6 +30,7 @@ public final class SteamDownloadState
         void onPercent(int percent, boolean indeterminate);
         void onFinished(String message);
         CompletableFuture<String> requestSteamGuardCode(boolean previousWrong, String email);
+        default void onSessionChanged() {}
     }
 
 
@@ -108,6 +109,26 @@ public final class SteamDownloadState
         if (appCtx != null) DownloadKeepAliveService.stop(appCtx);
         main.post(() -> {
             if (view != null) { view.onLog(getLog()); view.onFinished(message); }
+        });
+    }
+
+    @Override
+    public void onSessionSaved(String accountName, String refreshToken) {
+        if (appCtx != null) {
+            SteamSessionManager.saveSession(appCtx, accountName, refreshToken);
+        }
+        main.post(() -> {
+            if (view != null) view.onSessionChanged();
+        });
+    }
+
+    @Override
+    public void onSessionExpired() {
+        if (appCtx != null) {
+            SteamSessionManager.clearSession(appCtx);
+        }
+        main.post(() -> {
+            if (view != null) view.onSessionChanged();
         });
     }
 

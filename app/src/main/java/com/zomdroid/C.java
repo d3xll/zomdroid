@@ -71,6 +71,8 @@ public class C {
             // versionName the release notes were last shown for (or recorded silently on a fresh
             // install). Differing from BuildConfig.VERSION_NAME means an update happened.
             public static final String RELEASE_NOTES_SHOWN_FOR = "releaseNotesShownFor";
+            public static final String STEAM_USERNAME = "steamUsername";
+            public static final String STEAM_REFRESH_TOKEN = "steamRefreshToken";
         }
     }
 }

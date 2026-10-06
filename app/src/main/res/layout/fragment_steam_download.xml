@@ -94,23 +94,76 @@
                     android:textStyle="bold"
                     android:textColor="?attr/colorError"/>
 
-                <EditText
-                    android:id="@+id/et_dl_user"
+                <!-- Saved session block -->
+                <LinearLayout
+                    android:id="@+id/layout_saved_session"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/steam_dl_username"
-                    android:inputType="text"
-                    android:autofillHints="username"
-                    android:textSize="14sp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone">
 
-                <EditText
-                    android:id="@+id/et_dl_pass"
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_steam"
+                        app:tint="?attr/colorPrimary"
+                        android:layout_marginEnd="10dp"
+                        android:contentDescription="@null"/>
+
+                    <TextView
+                        android:id="@+id/tv_saved_user"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="?attr/colorOnSurface"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_steam_logout"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/steam_dl_logout"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <!-- Credentials input block -->
+                <LinearLayout
+                    android:id="@+id/layout_credentials_input"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/steam_dl_password"
-                    android:inputType="textPassword"
-                    android:autofillHints="password"
-                    android:textSize="14sp"/>
+                    android:orientation="vertical">
+
+                    <EditText
+                        android:id="@+id/et_dl_user"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/steam_dl_username"
+                        android:inputType="text"
+                        android:autofillHints="username"
+                        android:textSize="14sp"/>
+
+                    <EditText
+                        android:id="@+id/et_dl_pass"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/steam_dl_password"
+                        android:inputType="textPassword"
+                        android:autofillHints="password"
+                        android:textSize="14sp"/>
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cb_remember_session"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/steam_dl_remember_session"
+                        android:checked="true"
+                        android:textSize="13sp"/>
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

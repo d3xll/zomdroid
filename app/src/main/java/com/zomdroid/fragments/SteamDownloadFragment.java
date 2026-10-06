@@ -25,10 +25,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.zomdroid.R;
 import com.zomdroid.steam.SteamDownloadState;
 import com.zomdroid.steam.SteamGameDownloader;
 import com.zomdroid.steam.SteamModDownloader;
+import com.zomdroid.steam.SteamSessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,10 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     private String mpInstanceName;
 
     private EditText etUser, etPass, etManifest, etModsIds;
+    private MaterialCheckBox cbRememberSession;
+    private View layoutSavedSession, layoutCredentialsInput;
+    private TextView tvSavedUser;
+    private Button btnSteamLogout;
     private Button btnStart, btnModsStart, btnCancel;
     private ProgressBar progress;
     private TextView tvStatus;
@@ -67,6 +73,19 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         mpInstanceName = getArguments() == null ? null : getArguments().getString(ARG_MP_INSTANCE);
         etUser = v.findViewById(R.id.et_dl_user);
         etPass = v.findViewById(R.id.et_dl_pass);
+        cbRememberSession = v.findViewById(R.id.cb_remember_session);
+        layoutSavedSession = v.findViewById(R.id.layout_saved_session);
+        layoutCredentialsInput = v.findViewById(R.id.layout_credentials_input);
+        tvSavedUser = v.findViewById(R.id.tv_saved_user);
+        btnSteamLogout = v.findViewById(R.id.btn_steam_logout);
+        if (btnSteamLogout != null) {
+            btnSteamLogout.setOnClickListener(view -> {
+                SteamSessionManager.clearSession(appCtx);
+                updateLoginUi();
+            });
+        }
+        updateLoginUi();
+
         etManifest = v.findViewById(R.id.et_dl_manifest);
         etModsIds = v.findViewById(R.id.et_mods_ids);
         btnStart = v.findViewById(R.id.btn_dl_start);
@@ -179,11 +198,46 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         return m.find() ? m.group(1) : null;
     }
 
+    private void updateLoginUi() {
+        if (layoutSavedSession == null || layoutCredentialsInput == null) return;
+        boolean hasSaved = SteamSessionManager.hasSavedSession(appCtx);
+        if (hasSaved) {
+            String user = SteamSessionManager.getSavedUsername(appCtx);
+            if (tvSavedUser != null) {
+                tvSavedUser.setText(getString(R.string.steam_dl_logged_in_as, user != null ? user : "Steam"));
+            }
+            layoutSavedSession.setVisibility(View.VISIBLE);
+            layoutCredentialsInput.setVisibility(View.GONE);
+        } else {
+            layoutSavedSession.setVisibility(View.GONE);
+            layoutCredentialsInput.setVisibility(View.VISIBLE);
+        }
+    }
+
     // ---- start ----
     private void startGame() {
         if (SteamDownloadState.get().isDownloading()) return;
-        if (text(etUser).isEmpty()) { etUser.setError(getString(R.string.steam_dl_required)); return; }
-        if (etPass.getText().toString().isEmpty()) { etPass.setError(getString(R.string.steam_dl_required)); return; }
+
+        boolean hasSaved = SteamSessionManager.hasSavedSession(appCtx);
+        String username;
+        String password;
+        String refreshToken;
+        boolean remember;
+
+        if (hasSaved) {
+            username = SteamSessionManager.getSavedUsername(appCtx);
+            password = "";
+            refreshToken = SteamSessionManager.getSavedRefreshToken(appCtx);
+            remember = true;
+        } else {
+            if (text(etUser).isEmpty()) { etUser.setError(getString(R.string.steam_dl_required)); return; }
+            if (etPass.getText().toString().isEmpty()) { etPass.setError(getString(R.string.steam_dl_required)); return; }
+            username = text(etUser);
+            password = etPass.getText().toString();
+            refreshToken = null;
+            remember = cbRememberSession != null && cbRememberSession.isChecked();
+        }
+
         if (macosInstanceName == null && mpInstanceName == null && !ensureAllFilesAccess()) return;
 
         String manifestText = text(etManifest);
@@ -213,7 +267,7 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         }
 
         SteamDownloadState st = SteamDownloadState.get();
-        SteamGameDownloader dl = new SteamGameDownloader(text(etUser), etPass.getText().toString(),
+        SteamGameDownloader dl = new SteamGameDownloader(username, password, refreshToken, remember,
                 manifestId, branch, buildLabel, st);
         if (macosInstanceName != null) {
             com.zomdroid.game.GameInstance instance = com.zomdroid.game.GameInstanceManager.requireSingleton()
@@ -222,7 +276,7 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
                 Toast.makeText(appCtx, R.string.macos_libs_invalid_instance, Toast.LENGTH_LONG).show();
                 return;
             }
-            dl = SteamGameDownloader.macos(text(etUser), etPass.getText().toString(),
+            dl = SteamGameDownloader.macos(username, password, refreshToken, remember,
                     macosInstanceName, new java.io.File(instance.getGamePath()), st);
         }
         if (mpInstanceName != null) {
@@ -232,7 +286,7 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
                 Toast.makeText(appCtx, R.string.mp_libs_invalid_instance, Toast.LENGTH_LONG).show();
                 return;
             }
-            dl = SteamGameDownloader.libraries(text(etUser), etPass.getText().toString(),
+            dl = SteamGameDownloader.libraries(username, password, refreshToken, remember,
                     new java.io.File(instance.getGamePath()), com.zomdroid.steam.LibraryPack.B41_MULTIPLAYER, st);
         }
         Thread th = new Thread(dl, "zd-download");
@@ -284,6 +338,8 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     private void setControlsEnabled(boolean enabled) {
         if (etUser != null) etUser.setEnabled(enabled);
         if (etPass != null) etPass.setEnabled(enabled);
+        if (cbRememberSession != null) cbRememberSession.setEnabled(enabled);
+        if (btnSteamLogout != null) btnSteamLogout.setEnabled(enabled);
         if (etManifest != null) etManifest.setEnabled(enabled);
         if (btnStart != null) btnStart.setEnabled(enabled);
         if (btnModsStart != null) btnModsStart.setEnabled(enabled);
@@ -311,6 +367,11 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     }
 
     // ---- SteamDownloadState.View (always on main thread) ----
+    @Override
+    public void onSessionChanged() {
+        updateLoginUi();
+    }
+
     @Override
     public void onLog(CharSequence fullLog) {
         if (tvStatus == null) return;

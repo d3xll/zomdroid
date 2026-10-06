@@ -114,8 +114,12 @@
     <string name="steam_dl_tab_game">Game</string>
     <string name="steam_dl_tab_mods">Mods</string>
     <string name="steam_dl_login_group">Steam login</string>
-    <string name="steam_dl_login_note">Your login is sent to Steam (the same way DepotDownloader works) and is NOT stored — no data or password is saved. Approve the sign-in in your Steam Mobile app, or enter the Steam Guard code when asked.</string>
+    <string name="steam_dl_login_note">Your login is sent to Steam (the same way DepotDownloader works). If Remember session is enabled, an authorization token is saved on device so you don\'t have to enter your password again.</string>
     <string name="steam_dl_slow_warning">⚠️ Downloading can be slow.</string>
+    <string name="steam_dl_remember_session">Remember login</string>
+    <string name="steam_dl_logged_in_as">Logged in as %1$s</string>
+    <string name="steam_dl_logout">Log out</string>
+    <string name="steam_dl_session_expired">Steam session expired. Please log in again.</string>
     <string name="steam_dl_build_42">Build 42</string>
     <string name="steam_dl_build_41">Build 41</string>
     <string name="steam_dl_manifest_hint_41">Build 41 manifest id (required)</string>

@@ -78,9 +78,12 @@ public class SteamGameDownloader implements Runnable, Cancellable {
         void onProgress(String message);
         default void onPercent(int percent) {}
         void onDone(String message);
+        default void onSessionSaved(String accountName, String refreshToken) {}
+        default void onSessionExpired() {}
     }
 
     private final String username, password;
+    private final boolean rememberSession;
     private final long manifestId;       // 0 = latest build on the branch; >0 = pin this build
     private final String branch;         // Current branches: public = stable B42, legacy41 = B41.
     private final String buildLabel;     // "41" or "42" — for the output folder name only
@@ -91,14 +94,26 @@ public class SteamGameDownloader implements Runnable, Cancellable {
 
     public static SteamGameDownloader macos(String username, String password, String instanceName,
                                             File gameDir, Listener listener) {
-        SteamGameDownloader downloader = libraries(username, password, gameDir, LibraryPack.MACOS, listener);
+        return macos(username, password, null, true, instanceName, gameDir, listener);
+    }
+
+    public static SteamGameDownloader macos(String username, String password, String refreshToken, boolean rememberSession,
+                                            String instanceName, File gameDir, Listener listener) {
+        SteamGameDownloader downloader = libraries(username, password, refreshToken, rememberSession,
+                gameDir, LibraryPack.MACOS, listener);
         downloader.librariesInstanceName = instanceName;
         return downloader;
     }
 
     public static SteamGameDownloader libraries(String username, String password, File gameDir,
                                                 LibraryPack pack, Listener listener) {
-        SteamGameDownloader downloader = new SteamGameDownloader(username, password, pack.manifest, pack.branch, "42", listener);
+        return libraries(username, password, null, true, gameDir, pack, listener);
+    }
+
+    public static SteamGameDownloader libraries(String username, String password, String refreshToken, boolean rememberSession,
+                                                File gameDir, LibraryPack pack, Listener listener) {
+        SteamGameDownloader downloader = new SteamGameDownloader(username, password, refreshToken, rememberSession,
+                pack.manifest, pack.branch, "42", listener);
         downloader.librariesGameDir = gameDir;
         downloader.libraryPack = pack;
         return downloader;
@@ -115,7 +130,7 @@ public class SteamGameDownloader implements Runnable, Cancellable {
     private List<License> licenseList;
 
     private volatile String accountName;
-    private volatile String refreshToken;   // in-memory only
+    private volatile String refreshToken;
 
     private volatile boolean running;
     private volatile boolean started;
@@ -126,8 +141,16 @@ public class SteamGameDownloader implements Runnable, Cancellable {
 
     public SteamGameDownloader(String username, String password, long manifestId,
                               String branch, String buildLabel, Listener listener) {
+        this(username, password, null, true, manifestId, branch, buildLabel, listener);
+    }
+
+    public SteamGameDownloader(String username, String password, String refreshToken, boolean rememberSession,
+                              long manifestId, String branch, String buildLabel, Listener listener) {
         this.username = username;
         this.password = password;
+        this.refreshToken = refreshToken;
+        this.accountName = (refreshToken != null && !refreshToken.isEmpty()) ? username : null;
+        this.rememberSession = rememberSession;
         this.manifestId = manifestId;
         this.branch = (branch != null && !branch.isEmpty()) ? branch : "public";
         this.buildLabel = (buildLabel != null && !buildLabel.isEmpty()) ? buildLabel : "41";
@@ -188,12 +211,15 @@ public class SteamGameDownloader implements Runnable, Cancellable {
 
     private void onConnected(ConnectedCallback cb) {
         try {
-            if (refreshToken != null) { logOnWithToken(); return; }
+            if (refreshToken != null && !refreshToken.isEmpty()) {
+                logOnWithToken();
+                return;
+            }
             progress("Connected. Authenticating '" + username + "'...");
             AuthSessionDetails details = new AuthSessionDetails();
             details.username = username;
             details.password = password;
-            details.persistentSession = false;          // ephemeral — no token stored on disk
+            details.persistentSession = rememberSession;
             details.deviceFriendlyName = "Zomdroid";
             details.authenticator = new PushAuthenticator();
 
@@ -202,7 +228,7 @@ public class SteamGameDownloader implements Runnable, Cancellable {
             progress("Approve the sign-in in your Steam Mobile app...");
             AuthPollResult poll = session.pollingWaitForResult().get();
             accountName = poll.getAccountName();
-            refreshToken = poll.getRefreshToken();       // memory only
+            refreshToken = poll.getRefreshToken();
             logOnWithToken();
         } catch (Throwable t) {
             Log.e(TAG, "Auth failed", t);
@@ -213,8 +239,9 @@ public class SteamGameDownloader implements Runnable, Cancellable {
 
     private void logOnWithToken() {
         LogOnDetails lod = new LogOnDetails();
-        lod.setUsername(accountName);
+        lod.setUsername(accountName != null ? accountName : username);
         lod.setAccessToken(refreshToken);
+        lod.setShouldRememberPassword(rememberSession);
         lod.setLoginID(149);
         progress("Logging in...");
         steamUser.logOn(lod);
@@ -245,9 +272,23 @@ public class SteamGameDownloader implements Runnable, Cancellable {
 
     private void onLoggedOn(LoggedOnCallback cb) {
         if (cb.getResult() != EResult.OK) {
-            done("logOn failed: " + cb.getResult());
+            boolean wasTokenLogin = (refreshToken != null && (password == null || password.isEmpty()));
+            if (wasTokenLogin && (cb.getResult() == EResult.Expired
+                    || cb.getResult() == EResult.InvalidPassword
+                    || cb.getResult() == EResult.AccountLogonDenied)) {
+                if (listener != null) listener.onSessionExpired();
+                done("Session expired. Please log in again.");
+            } else {
+                done("logOn failed: " + cb.getResult());
+            }
             running = false;
             return;
+        }
+        if (rememberSession && refreshToken != null && !refreshToken.isEmpty()) {
+            String acc = accountName != null ? accountName : username;
+            if (acc != null && !acc.isEmpty() && listener != null) {
+                listener.onSessionSaved(acc, refreshToken);
+            }
         }
         progress("Logged on. Waiting for license list...");
     }
