@@ -166,4 +166,22 @@
         android:name="com.zomdroid.fragments.GogDownloadFragment"
         android:label="@string/gog_dl_menu" />
 
+    <fragment
+        android:id="@+id/controls_hub_fragment"
+        android:name="com.zomdroid.fragments.ControlsHubFragment"
+        android:label="@string/controls_hub_title"
+        tools:layout="@layout/fragment_controls_hub" />
+
+    <fragment
+        android:id="@+id/downloads_hub_fragment"
+        android:name="com.zomdroid.fragments.DownloadsHubFragment"
+        android:label="@string/downloads_hub_title"
+        tools:layout="@layout/fragment_downloads_hub" />
+
+    <fragment
+        android:id="@+id/settings_hub_fragment"
+        android:name="com.zomdroid.fragments.SettingsHubFragment"
+        android:label="@string/settings_hub_title"
+        tools:layout="@layout/fragment_settings_hub" />
+
 </navigation>

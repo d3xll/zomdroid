@@ -1,17 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/pz_orange</item>
-        <item name="colorOnPrimary">@color/md_theme_onPrimary</item>
+        <item name="colorOnPrimary">@color/pz_on_primary</item>
         <item name="colorPrimaryContainer">@color/pz_orange_dark</item>
-        <item name="colorOnPrimaryContainer">@color/md_theme_onPrimaryContainer</item>
-        <item name="colorSecondary">@color/md_theme_secondary</item>
-        <item name="colorOnSecondary">@color/md_theme_onSecondary</item>
-        <item name="colorSecondaryContainer">@color/md_theme_secondaryContainer</item>
-        <item name="colorOnSecondaryContainer">@color/md_theme_onSecondaryContainer</item>
-        <item name="colorTertiary">@color/md_theme_tertiary</item>
-        <item name="colorOnTertiary">@color/md_theme_onTertiary</item>
-        <item name="colorTertiaryContainer">@color/md_theme_tertiaryContainer</item>
-        <item name="colorOnTertiaryContainer">@color/md_theme_onTertiaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/pz_on_primary_container</item>
+        <item name="colorSecondary">@color/pz_secondary</item>
+        <item name="colorOnSecondary">@color/pz_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/pz_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/pz_on_secondary_container</item>
+        <item name="colorTertiary">@color/pz_tertiary</item>
+        <item name="colorOnTertiary">@color/pz_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/pz_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/pz_on_tertiary_container</item>
         <item name="colorError">@color/md_theme_error</item>
         <item name="colorOnError">@color/md_theme_onError</item>
         <item name="colorErrorContainer">@color/md_theme_errorContainer</item>
@@ -50,5 +50,6 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="materialButtonStyle">@style/AppTheme.Button</item>
         <item name="navigationViewStyle">@style/AppTheme.NavigationView</item>
+        <item name="bottomNavigationStyle">@style/AppTheme.BottomNavigationView</item>
     </style>
 </resources>

@@ -82,4 +82,9 @@
         <item name="cornerSizeTopLeft">0dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
     </style>
+
+    <style name="AppTheme.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">?attr/colorSurfaceContainer</item>
+        <item name="elevation">3dp</item>
+    </style>
 </resources>

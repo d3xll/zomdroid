@@ -424,4 +424,32 @@
     <string name="steam_dl_file_verifying">Проверка: %s</string>
     <string name="steam_dl_file_downloading">Файл: %s</string>
     <string name="steam_dl_speed_format">%.1f МБ/с • %s / %s</string>
+
+    <!-- Bottom Navigation & Hubs -->
+    <string name="nav_bottom_games">Контейнеры</string>
+    <string name="nav_bottom_controls">Управление</string>
+    <string name="nav_bottom_downloads">Загрузки</string>
+    <string name="nav_bottom_settings">Настройки</string>
+
+    <string name="controls_hub_title">Управление</string>
+    <string name="controls_hub_editor_subtitle">Настройка наэкранных кнопок, позиций и прозрачности</string>
+    <string name="controls_hub_mapper_subtitle">Калибровка и переназначение физического геймпада</string>
+    <string name="controls_hub_import_subtitle">Импорт, экспорт и управление раскладками</string>
+
+    <string name="downloads_hub_title">Загрузки</string>
+    <string name="downloads_hub_steam_subtitle">Загрузка игры и модов напрямую из Steam</string>
+    <string name="downloads_hub_gog_subtitle">Загрузка файлов игры из библиотеки GOG</string>
+    <string name="downloads_hub_mods_subtitle">Установка модификаций из .zip архивов или папок</string>
+    <string name="downloads_hub_saves_subtitle">Импорт файлов сохранений и бэкапов</string>
+
+    <string name="settings_hub_title">Настройки и инструменты</string>
+    <string name="settings_hub_group_settings">Параметры</string>
+    <string name="settings_hub_group_tools">Инструменты и отладка</string>
+    <string name="settings_hub_group_about">О приложении и сообщество</string>
+    <string name="settings_hub_app_settings_subtitle">Тема оформления, динамические цвета Material You</string>
+    <string name="settings_hub_game_settings_subtitle">Параметры запуска и игровые конфигурации</string>
+    <string name="settings_hub_optimization_subtitle">Память, Swap и оптимизация производительности</string>
+    <string name="settings_hub_driver_subtitle">Установка драйверов Turnip / Vulkan</string>
+    <string name="settings_hub_logs_subtitle">Просмотр и экспорт логов игры и крэш-дампов</string>
+    <string name="settings_hub_bug_report_subtitle">Отправка отчета с диагностическими логами</string>
 </resources>

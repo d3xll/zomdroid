@@ -718,4 +718,32 @@
     <string name="launcher_empty_quick_start">Quick start</string>
     <string name="nav_header_subtitle">Project Zomboid Launcher</string>
     <string name="action_play">Play</string>
+
+    <!-- Bottom Navigation & Hubs -->
+    <string name="nav_bottom_games">Containers</string>
+    <string name="nav_bottom_controls">Controls</string>
+    <string name="nav_bottom_downloads">Downloads</string>
+    <string name="nav_bottom_settings">Settings</string>
+
+    <string name="controls_hub_title">Controls</string>
+    <string name="controls_hub_editor_subtitle">Customize on-screen buttons, position and transparency</string>
+    <string name="controls_hub_mapper_subtitle">Calibrate and map physical gamepad buttons</string>
+    <string name="controls_hub_import_subtitle">Import, export, and manage touch control profiles</string>
+
+    <string name="downloads_hub_title">Downloads</string>
+    <string name="downloads_hub_steam_subtitle">Download game files and mods directly from Steam</string>
+    <string name="downloads_hub_gog_subtitle">Download game files from your GOG library</string>
+    <string name="downloads_hub_mods_subtitle">Import mods from .zip archives or folders</string>
+    <string name="downloads_hub_saves_subtitle">Import save files and backups</string>
+
+    <string name="settings_hub_title">Settings &amp; Tools</string>
+    <string name="settings_hub_group_settings">Preferences</string>
+    <string name="settings_hub_group_tools">Tools &amp; Maintenance</string>
+    <string name="settings_hub_group_about">About &amp; Community</string>
+    <string name="settings_hub_app_settings_subtitle">Theme, dynamic colors and launcher settings</string>
+    <string name="settings_hub_game_settings_subtitle">Default launch parameters and game configurations</string>
+    <string name="settings_hub_optimization_subtitle">Memory, swap, and performance tweaks</string>
+    <string name="settings_hub_driver_subtitle">Install custom Turnip / Vulkan GPU drivers</string>
+    <string name="settings_hub_logs_subtitle">View and export game and launcher logs</string>
+    <string name="settings_hub_bug_report_subtitle">Send diagnostic bundle to developers</string>
 </resources>

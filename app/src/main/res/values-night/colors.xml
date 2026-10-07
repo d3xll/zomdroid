@@ -142,4 +142,14 @@
     <color name="md_theme_surfaceContainerHighest_highContrast">#45474C</color>
     <color name="pz_orange">#faba69</color>
     <color name="pz_orange_dark">#ae6013</color>
+    <color name="pz_on_primary">#482900</color>
+    <color name="pz_on_primary_container">#ffdcbe</color>
+    <color name="pz_secondary">#dec0a8</color>
+    <color name="pz_on_secondary">#3e2c1c</color>
+    <color name="pz_secondary_container">#4a3525</color>
+    <color name="pz_on_secondary_container">#ffdcc2</color>
+    <color name="pz_tertiary">#c4cb9b</color>
+    <color name="pz_on_tertiary">#2e3410</color>
+    <color name="pz_tertiary_container">#444a25</color>
+    <color name="pz_on_tertiary_container">#e0e7b5</color>
 </resources>
