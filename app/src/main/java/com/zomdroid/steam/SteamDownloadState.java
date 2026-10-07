@@ -65,6 +65,13 @@ public final class SteamDownloadState
         if (!downloading) return;
         cancelling = true;
         appendLine("Cancelling…");
+        if (appCtx != null) {
+            DownloadKeepAliveService.updateProgressImmediate(appCtx,
+                    "Project Zomboid",
+                    "Cancelling download…",
+                    null,
+                    percent >= 0 ? percent : 0, 100, indeterminate);
+        }
         main.post(() -> { if (view != null) view.onLog(getLog()); });
         Cancellable c = active;
         if (c != null) c.cancel();   // downloader sets its running=false + interrupts its worker thread
@@ -89,6 +96,10 @@ public final class SteamDownloadState
         downloadedBytes = 0L;
         totalBytes = 0L;
         DownloadKeepAliveService.start(appCtx);
+        DownloadKeepAliveService.updateProgressImmediate(appCtx,
+                "Project Zomboid",
+                "Connecting to Steam…",
+                null, 0, 0, true);
     }
 
     private void appendLine(String line) {
@@ -98,10 +109,27 @@ public final class SteamDownloadState
         }
     }
 
+    private static String formatBytes(long bytes) {
+        if (bytes < 1024L * 1024L) {
+            return String.format(java.util.Locale.US, "%.1f KB", bytes / 1024.0);
+        } else if (bytes < 1024L * 1024L * 1024L) {
+            return String.format(java.util.Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0));
+        } else {
+            return String.format(java.util.Locale.US, "%.2f GB", bytes / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
+
     // ---- downloader callbacks (background threads) ----
     @Override
     public void onProgress(String message) {
         appendLine(message);
+        if (appCtx != null && indeterminate) {
+            DownloadKeepAliveService.updateProgress(appCtx,
+                    "Project Zomboid",
+                    message,
+                    null,
+                    0, 0, true);
+        }
         main.post(() -> { if (view != null) view.onLog(getLog()); });
     }
 
@@ -109,6 +137,16 @@ public final class SteamDownloadState
     public void onPercent(int p) {
         percent = Math.max(0, Math.min(100, p));
         indeterminate = false;
+        if (appCtx != null) {
+            String title = "Project Zomboid — " + percent + "%";
+            String sub = percent + "%";
+            String content = currentFile != null && !currentFile.isEmpty() ? currentFile : "Downloading…";
+            DownloadKeepAliveService.updateProgress(appCtx,
+                    title,
+                    content,
+                    sub,
+                    percent, 100, false);
+        }
         main.post(() -> { if (view != null) view.onPercent(percent, false); });
     }
 
@@ -120,6 +158,41 @@ public final class SteamDownloadState
         this.totalBytes = total;
         this.percent = Math.max(0, Math.min(100, p));
         this.indeterminate = false;
+
+        if (appCtx != null) {
+            String title = "Project Zomboid — " + this.percent + "%";
+            String sub;
+            StringBuilder content = new StringBuilder();
+
+            if (speedBytesPerSec > 0) {
+                double speedMb = speedBytesPerSec / (1024.0 * 1024.0);
+                String speedStr = String.format(java.util.Locale.US, "%.1f MB/s", speedMb);
+                sub = this.percent + "% • " + speedStr;
+                content.append(speedStr);
+                if (total > 0) {
+                    content.append(" • ").append(formatBytes(downloaded)).append(" / ").append(formatBytes(total));
+                }
+            } else {
+                sub = this.percent + "%";
+                if (total > 0) {
+                    content.append(formatBytes(downloaded)).append(" / ").append(formatBytes(total));
+                }
+            }
+
+            if (this.currentFile != null && !this.currentFile.isEmpty()) {
+                if (content.length() > 0) {
+                    content.append(" • ");
+                }
+                content.append(this.currentFile);
+            }
+
+            DownloadKeepAliveService.updateProgress(appCtx,
+                    title,
+                    content.toString(),
+                    sub,
+                    this.percent, 100, false);
+        }
+
         main.post(() -> {
             if (view != null) {
                 view.onFileProgress(this.currentFile, speedBytesPerSec, downloaded, total, this.percent);
