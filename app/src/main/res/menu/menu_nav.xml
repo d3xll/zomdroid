@@ -60,6 +60,11 @@
             android:icon="@drawable/ic_steam"
             app:showAsAction="never"/>
         <item
+            android:id="@+id/action_steam_workshop"
+            android:title="@string/steam_workshop_menu"
+            android:icon="@drawable/ic_mods"
+            app:showAsAction="never"/>
+        <item
             android:id="@+id/action_download_gog"
             android:title="@string/gog_dl_menu"
             android:icon="@drawable/ic_gog"

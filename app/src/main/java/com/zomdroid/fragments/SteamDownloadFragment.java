@@ -30,11 +30,8 @@ import com.google.android.material.slider.Slider;
 import com.zomdroid.R;
 import com.zomdroid.steam.SteamDownloadState;
 import com.zomdroid.steam.SteamGameDownloader;
-import com.zomdroid.steam.SteamModDownloader;
 import com.zomdroid.steam.SteamSessionManager;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,12 +46,12 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     private String macosInstanceName;
     private String mpInstanceName;
 
-    private EditText etUser, etPass, etManifest, etModsIds;
+    private EditText etUser, etPass, etManifest;
     private MaterialCheckBox cbRememberSession;
     private View layoutSavedSession, layoutCredentialsInput;
     private TextView tvSavedUser;
     private Button btnSteamLogout;
-    private Button btnStart, btnModsStart, btnCancel;
+    private Button btnStart, btnCancel;
     private Slider sliderConnections;
     private TextView tvConnectionsLabel;
     private MaterialCheckBox cbVerifyFiles;
@@ -62,7 +59,6 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     private TextView tvDlSpeed;
     private ProgressBar progress;
     private TextView tvStatus;
-    private android.view.View blockLogin, sectionGame, sectionMods;
     private MaterialButtonToggleGroup buildToggle;
     private Context appCtx;
 
@@ -93,9 +89,7 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         updateLoginUi();
 
         etManifest = v.findViewById(R.id.et_dl_manifest);
-        etModsIds = v.findViewById(R.id.et_mods_ids);
         btnStart = v.findViewById(R.id.btn_dl_start);
-        btnModsStart = v.findViewById(R.id.btn_mods_start);
         btnCancel = v.findViewById(R.id.btn_dl_cancel);
         sliderConnections = v.findViewById(R.id.slider_dl_connections);
         tvConnectionsLabel = v.findViewById(R.id.tv_dl_connections);
@@ -104,9 +98,6 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         tvDlSpeed = v.findViewById(R.id.tv_dl_speed);
         progress = v.findViewById(R.id.progress_dl);
         tvStatus = v.findViewById(R.id.tv_dl_status);
-        blockLogin = v.findViewById(R.id.block_login);
-        sectionGame = v.findViewById(R.id.section_game);
-        sectionMods = v.findViewById(R.id.section_mods);
 
         if (sliderConnections != null) {
             int savedConn = SteamSessionManager.getMaxConnections(appCtx);
@@ -133,23 +124,11 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
 
         tvStatus.setMovementMethod(new ScrollingMovementMethod());
         btnStart.setOnClickListener(view -> startGame());
-        btnModsStart.setOnClickListener(view -> startMods());
         btnCancel.setOnClickListener(view -> confirmCancel());
-
-        MaterialButtonToggleGroup toggle = v.findViewById(R.id.toggle_dl_type);
-        toggle.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-            boolean game = checkedId == R.id.btn_type_game;
-            sectionGame.setVisibility(game ? View.VISIBLE : View.GONE);
-            sectionMods.setVisibility(game ? View.GONE : View.VISIBLE);
-            blockLogin.setVisibility(game ? View.VISIBLE : View.GONE);
-        });
-        toggle.check(R.id.btn_type_game);
 
         buildToggle = v.findViewById(R.id.toggle_dl_build);
         buildToggle.check(R.id.btn_build_41);   // legacy41 is the default selection
         if (macosInstanceName != null || mpInstanceName != null) {
-            toggle.setVisibility(View.GONE);
             buildToggle.setVisibility(View.GONE);
             etManifest.setVisibility(View.GONE);
             if (sliderConnections != null) sliderConnections.setVisibility(View.GONE);
@@ -183,45 +162,27 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
             }
         });
 
-        // Re-attach to the running download (if any) and restore its log + progress + state.
-        SteamDownloadState st = SteamDownloadState.get();
-        st.setView(this);
-        tvStatus.setText(st.getLog());
-        scrollLogToBottom();
-        boolean busy = st.isDownloading();
-        setControlsEnabled(!busy);
-        btnCancel.setVisibility(busy ? View.VISIBLE : View.GONE);
-        if (busy) {
-            progress.setVisibility(View.VISIBLE);
-            if (st.isIndeterminate() || st.getPercent() < 0) {
-                progress.setIndeterminate(true);
-            } else {
-                progress.setIndeterminate(false);
-                progress.setProgress(st.getPercent());
-            }
-            updateFileProgressUi(st.getCurrentFile(), st.getCurrentSpeed(),
-                    st.getDownloadedBytes(), st.getTotalBytes(), st.getPercent());
-        } else {
-            progress.setVisibility(View.GONE);
-            if (tvDlFile != null) tvDlFile.setVisibility(View.GONE);
-            if (tvDlSpeed != null) tvDlSpeed.setVisibility(View.GONE);
-        }
+        // Re-attach to any in-progress download that outlived a previous view.
+        SteamDownloadState.get().setView(this);
     }
 
     @Override
     public void onDestroyView() {
-        SteamDownloadState.get().clearView(this);
         super.onDestroyView();
+        SteamDownloadState.get().clearView(this);
     }
 
-    private static final Pattern MANIFEST_ARG = Pattern.compile("-manifest\\s+(\\d+)");
-    private static final Pattern BETA_ARG = Pattern.compile("-beta\\s+(\\S+)");
+    private static final Pattern MANIFEST_ARG = Pattern.compile("-manifest\\s+(\\d{16,20})");
+    private static final Pattern RAW_MANIFEST  = Pattern.compile("^\\s*(\\d{16,20})\\s*$");
+    private static final Pattern BETA_ARG      = Pattern.compile("-beta\\s+(\\S+)");
 
     private static long parseManifestId(String raw) {
-        if (raw.matches("\\d+")) {
-            try { return Long.parseLong(raw); } catch (NumberFormatException ignored) { return 0L; }
+        if (raw == null || raw.trim().isEmpty()) return 0L;
+        Matcher m = RAW_MANIFEST.matcher(raw);
+        if (m.find()) {
+            try { return Long.parseLong(m.group(1)); } catch (NumberFormatException ignored) {}
         }
-        Matcher m = MANIFEST_ARG.matcher(raw);
+        m = MANIFEST_ARG.matcher(raw);
         if (m.find()) {
             try { return Long.parseLong(m.group(1)); } catch (NumberFormatException ignored) {}
         }
@@ -258,15 +219,16 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         String password;
         String refreshToken;
         boolean remember;
-
         if (hasSaved) {
             username = SteamSessionManager.getSavedUsername(appCtx);
-            password = "";
+            password = null;
             refreshToken = SteamSessionManager.getSavedRefreshToken(appCtx);
             remember = true;
         } else {
-            if (text(etUser).isEmpty()) { etUser.setError(getString(R.string.steam_dl_required)); return; }
-            if (etPass.getText().toString().isEmpty()) { etPass.setError(getString(R.string.steam_dl_required)); return; }
+            if (text(etUser).isEmpty() || etPass.getText().toString().isEmpty()) {
+                Toast.makeText(requireContext(), R.string.steam_dl_required, Toast.LENGTH_SHORT).show();
+                return;
+            }
             username = text(etUser);
             password = etPass.getText().toString();
             refreshToken = null;
@@ -323,28 +285,6 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         th.start();
     }
 
-    private void startMods() {
-        if (SteamDownloadState.get().isDownloading()) return;
-        List<Long> ids = new ArrayList<>();
-        for (String tok : text(etModsIds).split("[\\s,]+")) {
-            if (tok.isEmpty()) continue;
-            try { ids.add(Long.parseLong(tok)); } catch (NumberFormatException ignored) {}
-        }
-        if (ids.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.steam_dl_mods_empty, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (!ensureAllFilesAccess()) return;
-
-        SteamDownloadState st = SteamDownloadState.get();
-        SteamModDownloader dl = new SteamModDownloader(ids, st);
-        Thread th = new Thread(dl, "zd-anon-mod");
-        st.begin(appCtx);
-        st.setActive(dl, th);
-        beginUi();
-        th.start();
-    }
-
     private void beginUi() {
         setControlsEnabled(false);
         btnCancel.setVisibility(View.VISIBLE);
@@ -379,7 +319,6 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
         if (sliderConnections != null) sliderConnections.setEnabled(enabled);
         if (cbVerifyFiles != null) cbVerifyFiles.setEnabled(enabled);
         if (btnStart != null) btnStart.setEnabled(enabled);
-        if (btnModsStart != null) btnModsStart.setEnabled(enabled);
     }
 
     // ---- All-files access (writes into the public Downloads/zomdroid folder) ----
@@ -417,23 +356,21 @@ public class SteamDownloadFragment extends Fragment implements SteamDownloadStat
     }
 
     @Override
-    public void onPercent(int percent, boolean indeterminate) {
+    public void onPercent(int p, boolean indet) {
         if (progress == null) return;
         progress.setVisibility(View.VISIBLE);
-        progress.setIndeterminate(indeterminate);
-        if (!indeterminate) progress.setProgress(Math.max(0, Math.min(100, percent)));
+        progress.setIndeterminate(indet);
+        if (!indet) progress.setProgress(p);
     }
 
     @Override
     public void onFileProgress(String fileName, long speedBytesPerSec, long downloadedBytes, long totalBytes, int percent) {
-        updateFileProgressUi(fileName, speedBytesPerSec, downloadedBytes, totalBytes, percent);
-    }
-
-    private void updateFileProgressUi(String fileName, long speedBytesPerSec, long downloadedBytes, long totalBytes, int percent) {
         if (tvDlFile != null) {
             if (fileName != null && !fileName.isEmpty()) {
                 tvDlFile.setVisibility(View.VISIBLE);
                 tvDlFile.setText(getString(R.string.steam_dl_file_downloading, fileName));
+            } else {
+                tvDlFile.setVisibility(View.GONE);
             }
         }
         if (tvDlSpeed != null) {

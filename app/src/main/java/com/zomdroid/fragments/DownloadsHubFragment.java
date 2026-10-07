@@ -31,6 +31,9 @@ public class DownloadsHubFragment extends Fragment {
         binding.cardDownloadSteam.setOnClickListener(v ->
                 Navigation.findNavController(v).navigate(R.id.action_download_steam));
 
+        binding.cardSteamWorkshop.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.action_steam_workshop));
+
         binding.cardDownloadGog.setOnClickListener(v ->
                 Navigation.findNavController(v).navigate(R.id.action_download_gog));
 

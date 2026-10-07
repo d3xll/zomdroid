@@ -51,6 +51,9 @@
         android:id="@+id/action_download_steam"
         app:destination="@id/steam_download_fragment" />
     <action
+        android:id="@+id/action_steam_workshop"
+        app:destination="@id/steam_workshop_fragment" />
+    <action
         android:id="@+id/action_download_gog"
         app:destination="@id/gog_download_fragment" />
 
@@ -160,6 +163,12 @@
         android:id="@+id/steam_download_fragment"
         android:name="com.zomdroid.fragments.SteamDownloadFragment"
         android:label="@string/steam_dl_menu" />
+
+    <fragment
+        android:id="@+id/steam_workshop_fragment"
+        android:name="com.zomdroid.fragments.SteamWorkshopFragment"
+        android:label="@string/steam_workshop_menu"
+        tools:layout="@layout/fragment_steam_workshop" />
 
     <fragment
         android:id="@+id/gog_download_fragment"
